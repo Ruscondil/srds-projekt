@@ -1,0 +1,31 @@
+CREATE TABLE IF NOT EXISTS orders (
+   order_id uuid,
+   train_id int,
+   trip_date timestamp,
+   user_id uuid,
+   car int,
+   seats_amount int,
+   PRIMARY KEY ((train_id, trip_date), order_id, car)
+);
+
+CREATE TABLE IF NOT EXISTS users (
+   user_id uuid,
+   name string,
+   PRIMARY KEY (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS trains (
+   train_id int,
+   cars int,
+   seats_per_car int,
+   PRIMARY KEY (train_id)
+);
+
+
+jaki consitency level. Np. jak będzie 1 to będziemy mieli za dużo biletów sprzedanych i jak sobie z tym radzimy
+zoptymalizowac pytania np w formue cache tej tabeli. Powiedział po stronie bakendu, więc nie koniecznie chyba w cassandrze samej.
+co jak konduktor chce sprawdzic bilet to też by musiał sprawdzać całą tabelę. Też jakiś cache by się przydał.
+
+Tip 
+Trzeba dostosować ile jest wagonów do ilości wątków, bo jak odpalimy 100 wątków to może już się zdarzyć, że wszystkie bilety się sprzedadzą, zanim się ten setny uruchomi. W skrócie dać pociąg 1000000 miejsc xd
+

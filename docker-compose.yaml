@@ -1,0 +1,61 @@
+services:
+  cassandra1:
+    image: cassandra:latest
+    container_name: cassandra1
+    hostname: cassandra1
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_SEEDS=cassandra1
+      - CASSANDRA_CLUSTER_NAME=MyCluster
+      - CASSANDRA_NUM_TOKENS=256
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    volumes:
+      - cassandra_data1:/var/lib/cassandra
+    networks:
+      - cassandra_net
+
+  cassandra2:
+    image: cassandra:latest
+    container_name: cassandra2
+    hostname: cassandra2
+    ports:
+      - "9043:9042"
+    environment:
+      - CASSANDRA_SEEDS=cassandra1
+      - CASSANDRA_CLUSTER_NAME=MyCluster
+      - CASSANDRA_NUM_TOKENS=256
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    volumes:
+      - cassandra_data2:/var/lib/cassandra
+    networks:
+      - cassandra_net
+    depends_on:
+      - cassandra1
+
+  cassandra3:
+    image: cassandra:latest
+    container_name: cassandra3
+    hostname: cassandra3
+    ports:
+      - "9044:9042"
+    environment:
+      - CASSANDRA_SEEDS=cassandra1
+      - CASSANDRA_CLUSTER_NAME=MyCluster
+      - CASSANDRA_NUM_TOKENS=256
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    volumes:
+      - cassandra_data3:/var/lib/cassandra
+    networks:
+      - cassandra_net
+    depends_on:
+      - cassandra1
+
+volumes:
+  cassandra_data1:
+  cassandra_data2:
+  cassandra_data3:
+
+networks:
+  cassandra_net:
+    driver: bridge

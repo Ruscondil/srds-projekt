@@ -10,6 +10,9 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
+import java.util.Date;
+import java.util.UUID;
+
 /*
  * For error handling done right see: 
  * https://www.datastax.com/dev/blog/cassandra-error-handling-done-right
@@ -41,17 +44,30 @@ public class BackendSession {
 	private static PreparedStatement SELECT_ALL_FROM_USERS;
 	private static PreparedStatement INSERT_INTO_USERS;
 	private static PreparedStatement DELETE_ALL_FROM_USERS;
+	private static PreparedStatement SELECT_ALL_FROM_ORDERS;
+
 
 	private static final String USER_FORMAT = "- %-10s  %-16s %-10s %-10s\n";
+	private static final String ORDER_FORMAT = "Order ID: %s, Train ID: %d, Trip Date: %s, User ID: %s, Car: %d, Seats Amount: %d\n";
 	// private static final SimpleDateFormat df = new
 	// SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	private void prepareStatements() throws BackendException {
 		try {
+			// Statements for the 'users' table
 			SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;");
-			INSERT_INTO_USERS = session
-					.prepare("INSERT INTO users (companyName, name, phone, street) VALUES (?, ?, ?, ?);");
+			INSERT_INTO_USERS = session.prepare("INSERT INTO users (user_id, name) VALUES (?, ?);");
 			DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
+
+			// Statements for the 'orders' table
+			SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;");
+			//INSERT_INTO_ORDERS = session.prepare("INSERT INTO orders (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);");
+			//DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;");
+
+			// Statements for the 'trains' table
+			//SELECT_ALL_FROM_TRAINS = session.prepare("SELECT * FROM trains;");
+			//INSERT_INTO_TRAINS = session.prepare("INSERT INTO trains (train_id, cars, seats_per_car) VALUES (?, ?, ?);");
+			//DELETE_ALL_FROM_TRAINS = session.prepare("TRUNCATE trains;");
 		} catch (Exception e) {
 			throw new BackendException("Could not prepare statements. " + e.getMessage() + ".", e);
 		}
@@ -59,54 +75,6 @@ public class BackendSession {
 		logger.info("Statements prepared");
 	}
 
-	public String selectAll() throws BackendException {
-		StringBuilder builder = new StringBuilder();
-		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_USERS);
-
-		ResultSet rs = null;
-
-		try {
-			rs = session.execute(bs);
-		} catch (Exception e) {
-			throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
-		}
-
-		for (Row row : rs) {
-			String rcompanyName = row.getString("companyName");
-			String rname = row.getString("name");
-			int rphone = row.getInt("phone");
-			String rstreet = row.getString("street");
-
-			builder.append(String.format(USER_FORMAT, rcompanyName, rname, rphone, rstreet));
-		}
-
-		return builder.toString();
-	}
-
-	public void upsertUser(String companyName, String name, int phone, String street) throws BackendException {
-		BoundStatement bs = new BoundStatement(INSERT_INTO_USERS);
-		bs.bind(companyName, name, phone, street);
-
-		try {
-			session.execute(bs);
-		} catch (Exception e) {
-			throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
-		}
-
-		logger.info("User " + name + " upserted");
-	}
-
-	public void deleteAll() throws BackendException {
-		BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_USERS);
-
-		try {
-			session.execute(bs);
-		} catch (Exception e) {
-			throw new BackendException("Could not perform a delete operation. " + e.getMessage() + ".", e);
-		}
-
-		logger.info("All users deleted");
-	}
 
 	protected void finalize() {
 		try {
@@ -117,5 +85,36 @@ public class BackendSession {
 			logger.error("Could not close existing cluster", e);
 		}
 	}
+
+	public String selectAllOrders() throws BackendException {
+		StringBuilder builder = new StringBuilder();
+		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_ORDERS);
+
+		ResultSet rs = null;
+
+		try {
+			rs = session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
+		}
+
+		for (Row row : rs) {
+			UUID orderId = row.getUUID("order_id");
+			int trainId = row.getInt("train_id");
+			Date tripDate = row.getTimestamp("trip_date");
+			UUID userId = row.getUUID("user_id");
+			int car = row.getInt("car");
+			int seatsAmount = row.getInt("seats_amount");
+
+			builder.append(String.format(
+					ORDER_FORMAT,
+					orderId, trainId, tripDate, userId, car, seatsAmount
+			));
+		}
+
+		return builder.toString();
+	}
+
+
 
 }

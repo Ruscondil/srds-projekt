@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 CREATE TABLE IF NOT EXISTS users (
    user_id uuid,
-   name string,
+   name text,
    PRIMARY KEY (user_id)
 );
 

@@ -1,10 +1,10 @@
-package cassdemo;
+package com.trains;
 
 import java.io.IOException;
 import java.util.Properties;
 
-import cassdemo.backend.BackendException;
-import cassdemo.backend.BackendSession;
+import com.trains.backend.BackendException;
+import com.trains.backend.BackendSession;
 
 public class Main {
 

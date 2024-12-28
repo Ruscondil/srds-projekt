@@ -45,13 +45,19 @@ public class BackendSession {
 	private static PreparedStatement SELECT_ALL_FROM_USERS;
 	private static PreparedStatement INSERT_INTO_USERS;
 	private static PreparedStatement DELETE_ALL_FROM_USERS;
+
 	private static PreparedStatement SELECT_ALL_FROM_ORDERS;
 	private static PreparedStatement INSERT_INTO_ORDERS;
 	private static PreparedStatement DELETE_ALL_FROM_ORDERS;
 
+	private static PreparedStatement SELECT_ALL_FROM_TRAINS;
+	private static PreparedStatement INSERT_INTO_TRAINS;
+	private static PreparedStatement DELETE_ALL_FROM_TRAINS;
 
-	private static final String USER_FORMAT = "- %-10s  %-16s %-10s %-10s\n";
+
+	private static final String USER_FORMAT = "User ID: %s, User name: %s\n";
 	private static final String ORDER_FORMAT = "Order ID: %s, Train ID: %d, Trip Date: %s, User ID: %s, Car: %d, Seats Amount: %d\n";
+	private static final String TRAIN_FORMAT = "Train ID: %d, Cars: %d, Seats: %d \n";
 	// private static final SimpleDateFormat df = new
 	// SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -68,9 +74,9 @@ public class BackendSession {
 			DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;");
 
 			// Statements for the 'trains' table
-			//SELECT_ALL_FROM_TRAINS = session.prepare("SELECT * FROM trains;");
-			//INSERT_INTO_TRAINS = session.prepare("INSERT INTO trains (train_id, cars, seats_per_car) VALUES (?, ?, ?);");
-			//DELETE_ALL_FROM_TRAINS = session.prepare("TRUNCATE trains;");
+			SELECT_ALL_FROM_TRAINS = session.prepare("SELECT * FROM trains;");
+			INSERT_INTO_TRAINS = session.prepare("INSERT INTO trains (train_id, cars, seats_per_car) VALUES (?, ?, ?);");
+			DELETE_ALL_FROM_TRAINS = session.prepare("TRUNCATE trains;");
 		} catch (Exception e) {
 			throw new BackendException("Could not prepare statements. " + e.getMessage() + ".", e);
 		}
@@ -141,6 +147,107 @@ public class BackendSession {
 		}
 
 		logger.info("All orders deleted");
+	}
+
+	public String selectAllUsers() throws BackendException {
+		StringBuilder builder = new StringBuilder();
+		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_USERS);
+
+		ResultSet rs = null;
+
+		try {
+			rs = session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
+		}
+
+		for (Row row : rs) {
+			UUID userId = row.getUUID("user_id");
+			String name = row.getString("name");
+
+			builder.append(String.format(
+					USER_FORMAT,
+					userId, name
+			));
+		}
+
+		return builder.toString();
+	}
+
+	public void upsertUser(UUID userId, String name) throws BackendException {
+		BoundStatement bs = new BoundStatement(INSERT_INTO_USERS);
+		bs.bind(userId, name);
+
+		try {
+			session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
+		}
+
+		logger.info("User " + userId + " upserted");
+	}
+
+	public void deleteAllUsers() throws BackendException {
+		BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_USERS);
+
+		try {
+			session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform a delete operation. " + e.getMessage() + ".", e);
+		}
+
+		logger.info("All users deleted");
+	}
+
+	public String selectAllTrains() throws BackendException {
+		StringBuilder builder = new StringBuilder();
+		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_TRAINS);
+
+		ResultSet rs = null;
+
+		try {
+			rs = session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
+		}
+
+		for (Row row : rs) {
+			int trainId = row.getInt("train_id");
+			int cars = row.getInt("cars");
+			int seatsPerCar = row.getInt("seats_per_car");
+
+			builder.append(String.format(
+					TRAIN_FORMAT,
+					trainId, cars, seatsPerCar
+			));
+		}
+
+		return builder.toString();
+	}
+
+	public void upsertTrain(int trainId, int cars, int seatsPerCar) throws BackendException {
+		BoundStatement bs = new BoundStatement(INSERT_INTO_TRAINS);
+		bs.bind(trainId, cars, seatsPerCar);
+
+		try {
+			session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
+		}
+
+		logger.info("Train " + trainId + " upserted");
+	}
+
+	public void deleteAllTrains() throws BackendException {
+		BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_TRAINS);
+
+		try {
+			session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform a delete operation. " + e.getMessage() + ".", e);
+		}
+
+		logger.info("All trains deleted");
 	}
 
 }

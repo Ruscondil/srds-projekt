@@ -60,6 +60,15 @@ public class OrderService {
         logger.info("Order " + orderId + " upserted");
     }
 
+    public int getReservedSeats(int trainId, String tripDate, int car) {
+    String query = "SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?";
+    BoundStatement bs = new BoundStatement(session.prepare(query));
+    bs.bind(trainId, Timestamp.valueOf(tripDate), car);
+    ResultSet rs = session.execute(bs);
+    Row row = rs.one();
+    return row != null ? row.getInt(0) : 0;
+}
+
     public void deleteAllOrders() {
         BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_ORDERS);
         session.execute(bs);

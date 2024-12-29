@@ -31,7 +31,7 @@ public class TrainService {
         SELECT_ALL_FROM_TRAINS = session.prepare("SELECT * FROM trains;");
         INSERT_INTO_TRAINS = session.prepare("INSERT INTO trains (train_id, trip_date, cars, seats_per_car) VALUES (?, ?, ?, ?);");
         DELETE_ALL_FROM_TRAINS = session.prepare("TRUNCATE trains;");
-        SELECT_AVAILABLE_TRAINS = session.prepare("SELECT train_id, trip_date FROM trains LIMIT ?;");
+        SELECT_AVAILABLE_TRAINS = session.prepare("SELECT train_id, trip_date, cars, seats_per_car FROM trains LIMIT ?;");
     }
 
     public String selectAllTrains() {
@@ -67,7 +67,10 @@ public class TrainService {
         for (Row row : rs) {
             int trainId = row.getInt("train_id");
             String tripDate = row.getTimestamp("trip_date").toString();
-            trains.add(String.format("Train ID: %d, Departure: %s", trainId, tripDate));
+            int cars = row.getInt("cars");
+            int seatsPerCar = row.getInt("seats_per_car");
+            
+            trains.add(String.format("Train ID: %d, Departure: %s, Cars: %d, Seats Per Car: %d", trainId, tripDate, cars, seatsPerCar));
         }
 
         return trains;

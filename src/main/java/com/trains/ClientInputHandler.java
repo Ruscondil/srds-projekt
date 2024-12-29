@@ -109,10 +109,26 @@ public class ClientInputHandler {
 		//TODO sprawdzanie czy się zmieści i przydzielanie do wagonów
 		System.out.print("Enter number of tickets: ");
 		int numberOfTickets = Integer.parseInt(scanner.nextLine());
+		int remainingTickets = numberOfTickets;
+		UUID orderId = UUID.randomUUID();
+		StringBuilder ticketInfo = new StringBuilder();
 
-		orderService.upsertOrder(UUID.randomUUID(), trainId, Timestamp.valueOf(formattedDepartureTime),
-				userId, 1, numberOfTickets);
-		System.out.println("Ticket added successfully.");
+		for (int car = 1; car <= cars && remainingTickets > 0; car++) {
+			int availableSeats = carCapacity - orderService.getReservedSeats(trainId, formattedDepartureTime, car);
+			if (availableSeats > 0) {
+				int ticketsToReserve = Math.min(remainingTickets, availableSeats);
+				orderService.upsertOrder(orderId, trainId, Timestamp.valueOf(formattedDepartureTime), userId, car, ticketsToReserve);
+				ticketInfo.append(String.format("Reserved %d tickets in car %d\n", ticketsToReserve, car));
+				remainingTickets -= ticketsToReserve;
+			}
+		}
+
+		if (remainingTickets > 0) {
+			System.out.println("Not enough seats available for the requested number of tickets.");
+		} else {
+			System.out.println("Tickets reserved successfully:");
+			System.out.println(ticketInfo.toString());
+		}
 	}
 
 }

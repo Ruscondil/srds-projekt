@@ -1,5 +1,6 @@
 package com.trains.backend;
 
+import com.trains.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,7 @@ import com.datastax.driver.core.Session;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.UUID;
 
 /*
@@ -248,6 +250,26 @@ public class BackendSession {
 		}
 
 		logger.info("All trains deleted");
+	}
+
+	public Client createNewUser() throws BackendException {
+		Scanner scanner1 = new Scanner(System.in);
+		System.out.print("Enter your name: ");
+		String name = scanner1.nextLine();
+		UUID userId = UUID.randomUUID();
+		upsertUser(userId, name);
+		return new Client(userId, name);
+	}
+
+	public void printAllTables() throws BackendException {
+		String output = selectAllUsers();
+		System.out.println("Users: \n" + output);
+
+		output = selectAllTrains();
+		System.out.println("Trains: \n" + output);
+
+		output = selectAllOrders();
+		System.out.println("Orders: \n" + output);
 	}
 
 }

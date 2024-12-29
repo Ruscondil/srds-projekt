@@ -9,7 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 public class OrderService {
@@ -19,6 +21,7 @@ public class OrderService {
     private static PreparedStatement SELECT_ALL_FROM_ORDERS;
     private static PreparedStatement INSERT_INTO_ORDERS;
     private static PreparedStatement DELETE_ALL_FROM_ORDERS;
+    private static PreparedStatement SELECT_AVAILABLE_TRAINS;
 
     public OrderService(Session session) {
         this.session = session;
@@ -29,6 +32,7 @@ public class OrderService {
         SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;");
         INSERT_INTO_ORDERS = session.prepare("INSERT INTO orders (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);");
         DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;");
+        SELECT_AVAILABLE_TRAINS = session.prepare("SELECT train_id, trip_date FROM orders LIMIT ?;");
     }
 
     public String selectAllOrders() {
@@ -56,6 +60,21 @@ public class OrderService {
         bs.bind(orderId, trainId, tripDate, userId, car, seatsAmount);
         session.execute(bs);
         logger.info("Order " + orderId + " upserted");
+    }
+
+    public List<String> getAvailableTrains(int limit) {
+        List<String> trains = new ArrayList<>();
+        BoundStatement bs = new BoundStatement(SELECT_AVAILABLE_TRAINS);
+        bs.bind(limit);
+        ResultSet rs = session.execute(bs);
+
+        for (Row row : rs) {
+            int trainId = row.getInt("train_id");
+            String tripDate = row.getTimestamp("trip_date").toString();
+            trains.add(String.format("Train ID: %d, Departure: %s", trainId, tripDate));
+        }
+
+        return trains;
     }
 
     public void deleteAllOrders() {

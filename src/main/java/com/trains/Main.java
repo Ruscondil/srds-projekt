@@ -46,9 +46,9 @@ public class Main {
         UUID user4 = UUID.randomUUID();
         userService.upsertUser(user4, "Bob Marley");
 
-        trainService.upsertTrain(8022, 4, 100);
-        trainService.upsertTrain(1001, 5, 50);
-        trainService.upsertTrain(1212, 3, 150);
+        trainService.upsertTrain(8022, Timestamp.valueOf("2024-12-28 08:00:00"), 4, 100);
+        trainService.upsertTrain(1001, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50);
+        trainService.upsertTrain(1212, Timestamp.valueOf("2024-12-28 12:30:00"), 3, 150);
 
         orderService.upsertOrder(UUID.randomUUID(), 8022, Timestamp.valueOf("2024-12-28 08:00:00"),
                 user1, 2, 4);

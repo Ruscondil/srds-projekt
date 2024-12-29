@@ -64,7 +64,8 @@ public class ClientInputHandler {
 		}
 
 		UUID userId = currentClient.getUserId();
-		List<String> availableTrains = orderService.getAvailableTrains(10);
+
+		List<String> availableTrains = trainService.getAvailableTrains(10);
 
 		if (availableTrains.isEmpty()) {
 			System.out.println("No available trains.");
@@ -87,6 +88,8 @@ public class ClientInputHandler {
 		String[] trainDetails = selectedTrain.split(", ");
 		int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
 
+
+
 		// Pobieranie daty i czasu
 		String rawDepartureTime = trainDetails[1].split(": ")[1]; // np. Sat Dec 28 12:30:00 CET 2024
 		SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
@@ -101,6 +104,9 @@ public class ClientInputHandler {
 			return;
 		}
 
+		int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
+		int carCapacity = Integer.parseInt(trainDetails[3].split(": ")[1]);
+		//TODO sprawdzanie czy się zmieści i przydzielanie do wagonów
 		System.out.print("Enter number of tickets: ");
 		int numberOfTickets = Integer.parseInt(scanner.nextLine());
 

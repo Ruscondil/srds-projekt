@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS trains (
    train_id int,
+   trip_date timestamp,
    cars int,
    seats_per_car int,
-   PRIMARY KEY (train_id)
+   PRIMARY KEY ((train_id, trip_date))
 );

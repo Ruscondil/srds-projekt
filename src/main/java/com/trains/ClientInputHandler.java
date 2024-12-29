@@ -6,10 +6,9 @@ import com.trains.backend.BackendException;
 import com.trains.backend.OrderService;
 import com.trains.backend.TrainService;
 import java.sql.Timestamp;
-import java.util.UUID;
-import java.util.List;
-
-import java.util.Scanner;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class ClientInputHandler {
 	private UserService userService;
@@ -87,13 +86,27 @@ public class ClientInputHandler {
 		String selectedTrain = availableTrains.get(trainChoice - 1);
 		String[] trainDetails = selectedTrain.split(", ");
 		int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
-		String departureTime = trainDetails[1].split(": ")[1].replace("T", " ");
+
+		// Pobieranie daty i czasu
+		String rawDepartureTime = trainDetails[1].split(": ")[1]; // np. Sat Dec 28 12:30:00 CET 2024
+		SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String formattedDepartureTime;
+
+		try {
+			Date parsedDate = inputFormat.parse(rawDepartureTime);
+			formattedDepartureTime = outputFormat.format(parsedDate);
+		} catch (ParseException e) {
+			System.out.println("Invalid date format.");
+			return;
+		}
 
 		System.out.print("Enter number of tickets: ");
 		int numberOfTickets = Integer.parseInt(scanner.nextLine());
 
-		orderService.upsertOrder(UUID.randomUUID(), trainId, Timestamp.valueOf(departureTime),
+		orderService.upsertOrder(UUID.randomUUID(), trainId, Timestamp.valueOf(formattedDepartureTime),
 				userId, 1, numberOfTickets);
 		System.out.println("Ticket added successfully.");
 	}
+
 }

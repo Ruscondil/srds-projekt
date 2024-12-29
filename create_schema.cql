@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS orders (
    user_id uuid,
    car int,
    seats_amount int,
-   PRIMARY KEY ((train_id, trip_date), user_id, car)
+   PRIMARY KEY ((train_id, trip_date), car, order_id)
 );
 
 CREATE TABLE IF NOT EXISTS users (

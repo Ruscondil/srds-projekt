@@ -11,7 +11,8 @@ import com.trains.backend.TrainService;
 import com.trains.backend.UserService;
 import com.trains.backend.OrderService;
 import java.util.Scanner;
- // TODO: moze przeniesc kod klienta do osobnej klasy
+import com.trains.ClientInputHandler;
+
 public class Main {
 
 	private static final String PROPERTIES_FILENAME = "config.properties";
@@ -64,31 +65,8 @@ public class Main {
         orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"),
                 user3, 6, 8);
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Actions: ");
-        System.out.println("1 - Quit ");
-        System.out.println("2 - Create account ");
-		System.out.println("3 - Print tables");
-        int choice = 0;
-        while (choice != 1) {
-			System.out.print("Choose: ");
-            choice = Integer.parseInt(scanner.nextLine());
-            switch (choice) {
-				case 1: break;
-                case 2: {
-					currentClient = userService.createNewUser();
-					break;
-				}
-				case 3: {
-					session.printAllTables();
-					break;
-				}
-				default: System.out.println("Wrong action");
-            }
-        }
-
-
-
+		ClientInputHandler clientInputHandler = new ClientInputHandler(userService, session);
+		clientInputHandler.handleInput();
 
         orderService.deleteAllOrders();
         trainService.deleteAllTrains();

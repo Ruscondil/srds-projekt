@@ -106,7 +106,7 @@ public class ClientInputHandler {
 
 		int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
 		int carCapacity = Integer.parseInt(trainDetails[3].split(": ")[1]);
-		//TODO sprawdzanie czy się zmieści i przydzielanie do wagonów
+		//TODO jakieś smart przydzielanie, (by jak najwięcej możę siedziało razem, ale nie musi być w sumie)
 		System.out.print("Enter number of tickets: ");
 		int numberOfTickets = Integer.parseInt(scanner.nextLine());
 		int remainingTickets = numberOfTickets;

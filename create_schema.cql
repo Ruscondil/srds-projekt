@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS trains (
    PRIMARY KEY ((train_id, trip_date))
 );
 
-CREATE TABLE IF NOT EXISTS orders_per_client (
+CREATE TABLE IF NOT EXISTS orders_per_user (
    order_id uuid,
    train_id int,
    trip_date timestamp,

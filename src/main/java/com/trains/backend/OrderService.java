@@ -22,9 +22,16 @@ public class OrderService {
     private static PreparedStatement INSERT_INTO_ORDERS;
     private static PreparedStatement DELETE_ALL_FROM_ORDERS;
 
+    private UserOrderService userOrderService;
+
     public OrderService(Session session) {
         this.session = session;
         prepareStatements();
+        userOrderService = new UserOrderService(session);
+    }
+
+     public UserOrderService getUserOrderService() {
+        return userOrderService;
     }
 
     private void prepareStatements() {
@@ -58,6 +65,7 @@ public class OrderService {
         bs.bind(orderId, trainId, tripDate, userId, car, seatsAmount);
         session.execute(bs);
         logger.info("Order " + orderId + " upserted");
+        userOrderService.upsertUserOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
     }
 
     public int getReservedSeats(int trainId, String tripDate, int car) {
@@ -73,5 +81,6 @@ public class OrderService {
         BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_ORDERS);
         session.execute(bs);
         logger.info("All orders deleted");
+        userOrderService.deleteAllUsersOrders();
     }
 }

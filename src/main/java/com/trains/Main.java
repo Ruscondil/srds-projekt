@@ -65,8 +65,8 @@ public class Main {
         orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"),
                 user3, 6, 8);
 
-		ClientInputHandler clientInputHandler = new ClientInputHandler(userService, session);
-		clientInputHandler.handleInput();
+        ClientInputHandler clientInputHandler = new ClientInputHandler(userService, session);
+        clientInputHandler.handleInput();
 
         orderService.deleteAllOrders();
         trainService.deleteAllTrains();

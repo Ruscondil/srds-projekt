@@ -1,10 +1,7 @@
 package com.trains;
 
-import com.trains.backend.BackendSession;
-import com.trains.backend.UserService;
-import com.trains.backend.BackendException;
-import com.trains.backend.OrderService;
-import com.trains.backend.TrainService;
+import com.trains.backend.*;
+
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,26 +14,39 @@ public class ClientInputHandler {
 	private OrderService orderService;
 	private TrainService trainService;
 
+	private UserOrderService userOrderService;
+
 	public ClientInputHandler(UserService userService, BackendSession session) {
 		this.userService = userService;
 		this.session = session;
 		this.orderService = session.getOrderService();
 		this.trainService = session.getTrainService();
+		this.userOrderService = session.getUserOrderService();
+	}
+
+	public void printActions() {
+		System.out.println("Actions: ");
+		System.out.println("0 - Print actions");
+		System.out.println("1 - Quit");
+		System.out.println("2 - Create account");
+		System.out.println("3 - Print tables");
+		System.out.println("4 - Add ticket");
+		System.out.println("5 - Scan ticket");
 	}
 
 	public void handleInput() {
 		Scanner scanner = new Scanner(System.in);
-		System.out.println("Actions: ");
-		System.out.println("1 - Quit ");
-		System.out.println("2 - Create account ");
-		System.out.println("3 - Print tables");
-		System.out.println("4 - Add ticket");
+		printActions();
 		int choice = 0;
 		while (choice != 1) {
 			System.out.print("Choose: ");
 			choice = Integer.parseInt(scanner.nextLine());
 			try {
 				switch (choice) {
+					case 0: {
+						printActions();
+						break;
+					}
 					case 1: break;
 					case 2: {
 						currentClient = userService.createNewUser();
@@ -49,6 +59,9 @@ public class ClientInputHandler {
 					case 4: {
 						addTicket(scanner);
 						break;
+					}
+					case 5: {
+						scanTicket(scanner);
 					}
 					default: System.out.println("Wrong action");
 				}
@@ -129,6 +142,57 @@ public class ClientInputHandler {
 			System.out.println("Tickets reserved successfully:");
 			System.out.println(ticketInfo.toString());
 		}
+	}
+
+	private void scanTicket(Scanner scanner) throws BackendException {
+		UUID userId = currentClient.getUserId();
+
+		List<String> availableTrains = trainService.getAvailableTrains(10);
+
+		if (availableTrains.isEmpty()) {
+			System.out.println("No available trains.");
+			return;
+		}
+
+		System.out.println("Available trains:");
+		for (int i = 0; i < availableTrains.size(); i++) {
+			System.out.println((i + 1) + " - " + availableTrains.get(i));
+		}
+
+		System.out.print("Choose train: ");
+		int trainChoice = Integer.parseInt(scanner.nextLine());
+		if (trainChoice < 1 || trainChoice > availableTrains.size()) {
+			System.out.println("Invalid choice.");
+			return;
+		}
+
+		String selectedTrain = availableTrains.get(trainChoice - 1);
+		String[] trainDetails = selectedTrain.split(", ");
+		int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
+		
+		// Pobieranie daty i czasu
+		String rawDepartureTime = trainDetails[1].split(": ")[1]; // np. Sat Dec 28 12:30:00 CET 2024
+		SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String tripDate;
+
+		try {
+			Date parsedDate = inputFormat.parse(rawDepartureTime);
+			tripDate = outputFormat.format(parsedDate);
+		} catch (ParseException e) {
+			System.out.println("Invalid date format.");
+			return;
+		}
+		
+		System.out.println(trainId);
+		System.out.println(tripDate);
+		System.out.println(userId);
+
+		userOrderService.selectOrders(trainId, Timestamp.valueOf(tripDate), userId);
+
+		
+
+
 	}
 
 }

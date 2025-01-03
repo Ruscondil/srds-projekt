@@ -13,6 +13,7 @@ public class BackendSession {
     private TrainService trainService;
     private UserService userService;
     private OrderService orderService;
+    private UserOrderService userOrderService;
 
     public BackendSession(String contactPoint, String keyspace) throws BackendException {
         Cluster cluster = Cluster.builder().addContactPoint(contactPoint).build();
@@ -24,6 +25,7 @@ public class BackendSession {
         trainService = new TrainService(session);
         userService = new UserService(session);
         orderService = new OrderService(session);
+        userOrderService = new UserOrderService(session);
     }
 
     protected void finalize() {
@@ -48,6 +50,10 @@ public class BackendSession {
         return orderService;
     }
 
+    public UserOrderService getUserOrderService() {
+        return userOrderService;
+    }
+
     public void printAllTables() throws BackendException {
         String output = userService.selectAllUsers();
         System.out.println("Users: \n" + output);
@@ -57,5 +63,8 @@ public class BackendSession {
 
         output = orderService.selectAllOrders();
         System.out.println("Orders: \n" + output);
+
+        output = userOrderService.selectAllUsersOrders();
+        System.out.println("All User Orders: \n" + output);
     }
 }

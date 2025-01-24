@@ -21,6 +21,7 @@ public class TrainService {
     private static PreparedStatement INSERT_INTO_TRAINS;
     private static PreparedStatement DELETE_ALL_FROM_TRAINS;
     private static PreparedStatement SELECT_AVAILABLE_TRAINS;
+    private static PreparedStatement SELECT_TRAIN;
 
     public TrainService(Session session) {
         this.session = session;
@@ -32,6 +33,7 @@ public class TrainService {
         INSERT_INTO_TRAINS = session.prepare("INSERT INTO trains (train_id, trip_date, cars, seats_per_car) VALUES (?, ?, ?, ?);");
         DELETE_ALL_FROM_TRAINS = session.prepare("TRUNCATE trains;");
         SELECT_AVAILABLE_TRAINS = session.prepare("SELECT train_id, trip_date, cars, seats_per_car FROM trains LIMIT ?;");
+        SELECT_TRAIN = session.prepare("SELECT * FROM trains WHERE train_id = ? AND trip_date = ?;");
     }
 
     public String selectAllTrains() {
@@ -56,6 +58,20 @@ public class TrainService {
         bs.bind(trainId, tripDate, cars, seatsPerCar);
         session.execute(bs);
         logger.info("Train " + trainId + " upserted");
+    }
+
+    public String selectTrain(int trainId, Timestamp tripDate) {
+        BoundStatement bs = new BoundStatement(SELECT_TRAIN);
+        bs.bind(trainId, tripDate);
+        ResultSet rs = session.execute(bs);
+        Row row = rs.one();
+        if (row == null) {
+            return null;
+        }
+        int cars = row.getInt("cars");
+        int seatsPerCar = row.getInt("seats_per_car");
+        
+        return String.format("Train ID: %d, Departure: %s, Cars: %d, Seats Per Car: %d", trainId, tripDate, cars, seatsPerCar);
     }
 
     public List<String> getAvailableTrains(int limit) {

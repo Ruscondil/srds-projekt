@@ -24,15 +24,19 @@ public class OrderService {
 
     private UserOrderService userOrderService;
 
+    private TrainService trainService;
+
     public OrderService(Session session) {
         this.session = session;
         prepareStatements();
         userOrderService = new UserOrderService(session);
+        trainService = new TrainService(session);
     }
 
      public UserOrderService getUserOrderService() {
         return userOrderService;
     }
+    public TrainService getTrainService() {return trainService;}
 
     private void prepareStatements() {
         SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;");
@@ -61,21 +65,34 @@ public class OrderService {
     }
 
     public void upsertOrder(UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount) {
-        BoundStatement bs = new BoundStatement(INSERT_INTO_ORDERS);
-        bs.bind(orderId, trainId, tripDate, userId, car, seatsAmount);
-        session.execute(bs);
-        logger.info("Order " + orderId + " upserted");
-        userOrderService.upsertUserOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
+        int reservedSeats = getReservedSeats(trainId, tripDate.toString(), car);
+        String selectedTrain = trainService.selectTrain(trainId, tripDate);
+        if (selectedTrain == null) {
+            System.out.println("Train not found");
+            return;
+        }
+
+        int seatsPerCar = Integer.parseInt(selectedTrain.split(",")[3].split(": ")[1]);
+        int availableSeats = seatsPerCar - reservedSeats;
+         if (availableSeats >= seatsAmount) {
+            BoundStatement bs = new BoundStatement(INSERT_INTO_ORDERS);
+            bs.bind(orderId, trainId, tripDate, userId, car, seatsAmount);
+            session.execute(bs);
+            logger.info("Order " + orderId + " upserted");
+            userOrderService.upsertUserOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
+         } else {
+            logger.warn("Not enough seats available for order " + orderId);
+         }
     }
 
     public int getReservedSeats(int trainId, String tripDate, int car) {
-    String query = "SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?";
-    BoundStatement bs = new BoundStatement(session.prepare(query));
-    bs.bind(trainId, Timestamp.valueOf(tripDate), car);
-    ResultSet rs = session.execute(bs);
-    Row row = rs.one();
-    return row != null ? row.getInt(0) : 0;
-}
+        String query = "SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?";
+        BoundStatement bs = new BoundStatement(session.prepare(query));
+        bs.bind(trainId, Timestamp.valueOf(tripDate), car);
+        ResultSet rs = session.execute(bs);
+        Row row = rs.one();
+        return row != null ? row.getInt(0) : 0;
+    }
 
     public void deleteAllOrders() {
         BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_ORDERS);

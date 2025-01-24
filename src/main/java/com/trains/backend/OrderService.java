@@ -75,11 +75,15 @@ public class OrderService {
         int seatsPerCar = Integer.parseInt(selectedTrain.split(",")[3].split(": ")[1]);
         int availableSeats = seatsPerCar - reservedSeats;
          if (availableSeats >= seatsAmount) {
-            BoundStatement bs = new BoundStatement(INSERT_INTO_ORDERS);
-            bs.bind(orderId, trainId, tripDate, userId, car, seatsAmount);
-            session.execute(bs);
-            logger.info("Order " + orderId + " upserted");
-            userOrderService.upsertUserOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
+            if (trainService.isValidCar(trainId, tripDate, car)) {
+                BoundStatement bs = new BoundStatement(INSERT_INTO_ORDERS);
+                bs.bind(orderId, trainId, tripDate, userId, car, seatsAmount);
+                session.execute(bs);
+                logger.info("Order " + orderId + " upserted");
+                userOrderService.upsertUserOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
+            } else {
+                logger.warn("Invalid car number " + car + " for train " + trainId + " on " + tripDate);
+            }
          } else {
             logger.warn("Not enough seats available for order " + orderId);
          }

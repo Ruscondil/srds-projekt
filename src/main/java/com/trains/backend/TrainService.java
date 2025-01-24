@@ -74,6 +74,18 @@ public class TrainService {
         return String.format("Train ID: %d, Departure: %s, Cars: %d, Seats Per Car: %d", trainId, tripDate, cars, seatsPerCar);
     }
 
+    public boolean isValidCar(int trainId, Timestamp tripDate, int carNumber) {
+        BoundStatement bs = new BoundStatement(SELECT_TRAIN);
+        bs.bind(trainId, tripDate);
+        ResultSet rs = session.execute(bs);
+        Row row = rs.one();
+        if (row == null) {
+            return false;
+        }
+        int cars = row.getInt("cars");
+        return carNumber > 0 && carNumber <= cars;
+    }
+
     public List<String> getAvailableTrains(int limit) {
         List<String> trains = new ArrayList<>();
         BoundStatement bs = new BoundStatement(SELECT_AVAILABLE_TRAINS);

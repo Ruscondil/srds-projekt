@@ -63,11 +63,12 @@ public class TrainService {
         return builder.toString();
     }
 
-    public void upsertTrain(int trainId, Timestamp tripDate, int cars, int seatsPerCar) {
+    public String upsertTrain(int trainId, Timestamp tripDate, int cars, int seatsPerCar) {
         BoundStatement bs = new BoundStatement(INSERT_INTO_TRAINS);
         bs.bind(trainId, tripDate, cars, seatsPerCar);
         session.execute(bs);
         logger.info("Train " + trainId + " upserted");
+        return String.format("TrainID: %d, Departure: %s, Cars: %d, SeatsPerCar: %d", trainId, tripDate, cars, seatsPerCar);
     }
 
     public String selectTrain(int trainId, Timestamp tripDate) {

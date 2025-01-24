@@ -77,7 +77,6 @@ public class ClientInputHandler {
 		}
 
 		UUID userId = currentClient.getUserId();
-
 		List<String> availableTrains = trainService.getAvailableTrains(10);
 
 		if (availableTrains.isEmpty()) {
@@ -85,6 +84,32 @@ public class ClientInputHandler {
 			return;
 		}
 
+		int trainChoice = getUserTrainChoice(scanner, availableTrains);
+		if (trainChoice == -1) {
+			System.out.println("Invalid choice.");
+			return;
+		}
+
+		String selectedTrain = availableTrains.get(trainChoice - 1);
+		String formattedDepartureTime = getFormattedDepartureTime(selectedTrain);
+		if (formattedDepartureTime == null) {
+			System.out.println("Invalid date format.");
+			return;
+		}
+
+		int numberOfTickets = getNumberOfTickets(scanner);
+		UUID orderId = UUID.randomUUID();
+		String ticketInfo = reserveTickets(orderId, selectedTrain, formattedDepartureTime, userId, numberOfTickets);
+
+		if (ticketInfo == null) {
+			System.out.println("Not enough seats available for the requested number of tickets.");
+		} else {
+			System.out.println("Tickets reserved successfully:");
+			System.out.println(ticketInfo);
+		}
+	}
+
+	private int getUserTrainChoice(Scanner scanner, List<String> availableTrains) {
 		System.out.println("Available trains:");
 		for (int i = 0; i < availableTrains.size(); i++) {
 			System.out.println((i + 1) + " - " + availableTrains.get(i));
@@ -93,37 +118,36 @@ public class ClientInputHandler {
 		System.out.print("Choose train: ");
 		int trainChoice = Integer.parseInt(scanner.nextLine());
 		if (trainChoice < 1 || trainChoice > availableTrains.size()) {
-			System.out.println("Invalid choice.");
-			return;
+			return -1;
 		}
+		return trainChoice;
+	}
 
-		String selectedTrain = availableTrains.get(trainChoice - 1);
-		String[] trainDetails = selectedTrain.split(", ");
-		int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
-
-
-
-		// Pobieranie daty i czasu
-		String rawDepartureTime = trainDetails[1].split(": ")[1]; // np. Sat Dec 28 12:30:00 CET 2024
+	private String getFormattedDepartureTime(String selectedTrain) {
+		String rawDepartureTime = selectedTrain.split(", ")[1].split(": ")[1];
 		SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
 		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String formattedDepartureTime;
 
 		try {
 			Date parsedDate = inputFormat.parse(rawDepartureTime);
-			formattedDepartureTime = outputFormat.format(parsedDate);
+			return outputFormat.format(parsedDate);
 		} catch (ParseException e) {
-			System.out.println("Invalid date format.");
-			return;
+			return null;
 		}
+	}
 
+	private int getNumberOfTickets(Scanner scanner) {
+		System.out.print("Enter number of tickets: ");
+		return Integer.parseInt(scanner.nextLine());
+	}
+
+	private String reserveTickets(UUID orderId, String selectedTrain, String formattedDepartureTime, UUID userId, int numberOfTickets) {
+		String[] trainDetails = selectedTrain.split(", ");
+		int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
 		int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
 		int carCapacity = Integer.parseInt(trainDetails[3].split(": ")[1]);
-		//TODO jakieś smart przydzielanie, (by jak najwięcej możę siedziało razem, ale nie musi być w sumie)
-		System.out.print("Enter number of tickets: ");
-		int numberOfTickets = Integer.parseInt(scanner.nextLine());
+
 		int remainingTickets = numberOfTickets;
-		UUID orderId = UUID.randomUUID();
 		StringBuilder ticketInfo = new StringBuilder();
 
 		for (int car = 1; car <= cars && remainingTickets > 0; car++) {
@@ -136,12 +160,7 @@ public class ClientInputHandler {
 			}
 		}
 
-		if (remainingTickets > 0) {
-			System.out.println("Not enough seats available for the requested number of tickets.");
-		} else {
-			System.out.println("Tickets reserved successfully:");
-			System.out.println(ticketInfo.toString());
-		}
+		return remainingTickets > 0 ? null : ticketInfo.toString();
 	}
 
 	private void scanTicket(Scanner scanner) throws BackendException {

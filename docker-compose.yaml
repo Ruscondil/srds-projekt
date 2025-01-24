@@ -1,55 +1,99 @@
 services:
   cassandra1:
-    image: cassandra:latest
-    container_name: cassandra1
-    hostname: cassandra1
+    image: "cassandra:latest"  
+    container_name: "cassandra1"
     ports:
+      - "7000:7000"
       - "9042:9042"
-    environment:
-      - CASSANDRA_SEEDS=cassandra1
-      - CASSANDRA_CLUSTER_NAME=MyCluster
-      - CASSANDRA_NUM_TOKENS=256
-      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
-    volumes:
-      - cassandra_data1:/var/lib/cassandra
     networks:
       - cassandra_net
+    environment:
+      - CASSANDRA_USER=admin
+      - CASSANDRA_PASSWORD=admin
+      - CASSANDRA_START_RPC=true
+      - CASSANDRA_BROADCAST_RPC_ADDRESS=127.0.0.1
+      - CASSANDRA_LISTEN_ADDRESS=auto
+      - CASSANDRA_CLUSTER_NAME=MyCluster
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - CASSANDRA_DC=dc1
+      - MAX_HEAP_SIZE=128M
+      - HEAP_NEWSIZE=24M
+    volumes:
+      - cassandra_data1:/var/lib/cassandra:rw
+    restart:
+      on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status"]
+      interval: 2m
+      start_period: 2m
+      timeout: 10s
+      retries: 3
 
   cassandra2:
-    image: cassandra:latest
-    container_name: cassandra2
-    hostname: cassandra2
+    image: "cassandra:latest"  
+    container_name: "cassandra2"
     ports:
       - "9043:9042"
-    environment:
-      - CASSANDRA_SEEDS=cassandra1
-      - CASSANDRA_CLUSTER_NAME=MyCluster
-      - CASSANDRA_NUM_TOKENS=256
-      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
-    volumes:
-      - cassandra_data2:/var/lib/cassandra
     networks:
       - cassandra_net
+    environment:
+      - CASSANDRA_USER=admin
+      - CASSANDRA_PASSWORD=admin
+      - CASSANDRA_START_RPC=true
+      - CASSANDRA_BROADCAST_RPC_ADDRESS=127.0.0.1
+      - CASSANDRA_LISTEN_ADDRESS=auto
+      - CASSANDRA_CLUSTER_NAME=MyCluster
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_SEEDS=cassandra1
+      - MAX_HEAP_SIZE=128M
+      - HEAP_NEWSIZE=24M
     depends_on:
-      - cassandra1
+      cassandra1:
+        condition: service_healthy
+    volumes:
+      - cassandra_data2:/var/lib/cassandra:rw
+    restart:
+      on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status"]
+      interval: 2m
+      start_period: 2m
+      timeout: 10s
+      retries: 3
 
   cassandra3:
-    image: cassandra:latest
-    container_name: cassandra3
-    hostname: cassandra3
+    image: "cassandra:latest"  
+    container_name: "cassandra3"
     ports:
       - "9044:9042"
-    environment:
-      - CASSANDRA_SEEDS=cassandra1
-      - CASSANDRA_CLUSTER_NAME=MyCluster
-      - CASSANDRA_NUM_TOKENS=256
-      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
-    volumes:
-      - cassandra_data3:/var/lib/cassandra
     networks:
       - cassandra_net
+    environment:
+      - CASSANDRA_USER=admin
+      - CASSANDRA_PASSWORD=admin
+      - CASSANDRA_START_RPC=true
+      - CASSANDRA_BROADCAST_RPC_ADDRESS=127.0.0.1
+      - CASSANDRA_LISTEN_ADDRESS=auto
+      - CASSANDRA_CLUSTER_NAME=MyCluster
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_SEEDS=cassandra1
+      - MAX_HEAP_SIZE=128M
+      - HEAP_NEWSIZE=24M
     depends_on:
-      - cassandra1
+      cassandra2:
+        condition: service_healthy
+    volumes:
+      - cassandra_data3:/var/lib/cassandra:rw
+    restart:
+      on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status"]
+      interval: 2m
+      start_period: 2m
+      timeout: 10s
+      retries: 3
 
 volumes:
   cassandra_data1:

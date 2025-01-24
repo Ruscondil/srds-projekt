@@ -5,6 +5,8 @@ import com.datastax.driver.core.Session;
 import com.trains.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.List;
+import java.util.ArrayList;
 
 public class BackendSession {
     private static final Logger logger = LoggerFactory.getLogger(BackendSession.class);
@@ -15,10 +17,22 @@ public class BackendSession {
     private OrderService orderService;
     private UserOrderService userOrderService;
 
-    public BackendSession(String contactPoint, String keyspace) throws BackendException {
-        Cluster cluster = Cluster.builder().addContactPoint(contactPoint).build();
+    public BackendSession(String contactPoints, String keyspace) throws BackendException {
+        List<Cluster> clusters = new ArrayList<>();
+        for (String contactPoint : splitContactPoints(contactPoints)) {
+            String[] parts = contactPoint.split(":");
+            Cluster.Builder clusterBuilder = Cluster.builder().addContactPoint(parts[0].trim());
+            if (parts.length > 1) {
+                clusterBuilder.withPort(Integer.parseInt(parts[1].trim()));
+            }
+            Cluster cluster = clusterBuilder.build();
+            clusters.add(cluster);
+        }
         try {
-            session = cluster.connect(keyspace);
+            for (Cluster cluster : clusters) {
+                session = cluster.connect(keyspace);
+                System.out.println("Connected to keyspace: " + keyspace);
+            }
         } catch (Exception e) {
             throw new BackendException("Could not connect to the cluster. " + e.getMessage() + ".", e);
         }
@@ -26,6 +40,10 @@ public class BackendSession {
         userService = new UserService(session);
         orderService = new OrderService(session);
         userOrderService = new UserOrderService(session);
+    }
+
+    private String[] splitContactPoints(String contactPoints) {
+        return contactPoints.split(",");
     }
 
     protected void finalize() {

@@ -21,6 +21,7 @@ public class OrderService {
     private static PreparedStatement SELECT_ALL_FROM_ORDERS;
     private static PreparedStatement INSERT_INTO_ORDERS;
     private static PreparedStatement DELETE_ALL_FROM_ORDERS;
+    private static PreparedStatement SELECT_SUM_SEATS_AMOUNT;
 
     private UserOrderService userOrderService;
 
@@ -42,6 +43,7 @@ public class OrderService {
         SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;");
         INSERT_INTO_ORDERS = session.prepare("INSERT INTO orders (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);");
         DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;");
+        SELECT_SUM_SEATS_AMOUNT = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?");
     }
 
     public String selectAllOrders() {
@@ -90,8 +92,7 @@ public class OrderService {
     }
 
     public int getReservedSeats(int trainId, String tripDate, int car) {
-        String query = "SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?";
-        BoundStatement bs = new BoundStatement(session.prepare(query));
+        BoundStatement bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT);
         bs.bind(trainId, Timestamp.valueOf(tripDate), car);
         ResultSet rs = session.execute(bs);
         Row row = rs.one();

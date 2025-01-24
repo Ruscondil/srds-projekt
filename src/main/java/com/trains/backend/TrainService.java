@@ -29,11 +29,21 @@ public class TrainService {
     }
 
     private void prepareStatements() {
-        SELECT_ALL_FROM_TRAINS = session.prepare("SELECT * FROM trains;");
-        INSERT_INTO_TRAINS = session.prepare("INSERT INTO trains (train_id, trip_date, cars, seats_per_car) VALUES (?, ?, ?, ?);");
-        DELETE_ALL_FROM_TRAINS = session.prepare("TRUNCATE trains;");
-        SELECT_AVAILABLE_TRAINS = session.prepare("SELECT train_id, trip_date, cars, seats_per_car FROM trains LIMIT ?;");
-        SELECT_TRAIN = session.prepare("SELECT * FROM trains WHERE train_id = ? AND trip_date = ?;");
+        if (SELECT_ALL_FROM_TRAINS == null) {
+            SELECT_ALL_FROM_TRAINS = session.prepare("SELECT * FROM trains;");
+        }
+        if (INSERT_INTO_TRAINS == null) {
+            INSERT_INTO_TRAINS = session.prepare("INSERT INTO trains (train_id, trip_date, cars, seats_per_car) VALUES (?, ?, ?, ?);");
+        }
+        if (DELETE_ALL_FROM_TRAINS == null) {
+            DELETE_ALL_FROM_TRAINS = session.prepare("TRUNCATE trains;");
+        }
+        if (SELECT_AVAILABLE_TRAINS == null) {
+            SELECT_AVAILABLE_TRAINS = session.prepare("SELECT train_id, trip_date, cars, seats_per_car FROM trains LIMIT ?;");
+        }
+        if (SELECT_TRAIN == null) {
+            SELECT_TRAIN = session.prepare("SELECT * FROM trains WHERE train_id = ? AND trip_date = ?;");
+        }
     }
 
     public String selectAllTrains() {

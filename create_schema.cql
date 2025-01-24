@@ -2,6 +2,7 @@ CREATE KEYSPACE IF NOT EXISTS Test
   WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
 
 USE Test;
+CONSISTENCY QUORUM;
 
 CREATE TABLE IF NOT EXISTS orders (
    order_id uuid,

@@ -18,21 +18,18 @@ public class BackendSession {
     private UserOrderService userOrderService;
 
     public BackendSession(String contactPoints, String keyspace) throws BackendException {
-        List<Cluster> clusters = new ArrayList<>();
+        Cluster.Builder clusterBuilder = Cluster.builder();
         for (String contactPoint : splitContactPoints(contactPoints)) {
             String[] parts = contactPoint.split(":");
-            Cluster.Builder clusterBuilder = Cluster.builder().addContactPoint(parts[0].trim());
+            clusterBuilder.addContactPoint(parts[0].trim());
             if (parts.length > 1) {
                 clusterBuilder.withPort(Integer.parseInt(parts[1].trim()));
             }
-            Cluster cluster = clusterBuilder.build();
-            clusters.add(cluster);
         }
+        Cluster cluster = clusterBuilder.build();
         try {
-            for (Cluster cluster : clusters) {
-                session = cluster.connect(keyspace);
-                System.out.println("Connected to keyspace: " + keyspace);
-            }
+            session = cluster.connect(keyspace);
+            System.out.println("Connected to keyspace: " + keyspace);
         } catch (Exception e) {
             throw new BackendException("Could not connect to the cluster. " + e.getMessage() + ".", e);
         }

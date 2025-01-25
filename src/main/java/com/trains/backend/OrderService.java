@@ -146,12 +146,12 @@ public class OrderService {
     }
 
     public void confirmReservation(UUID resId, UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount) {
+        upsertOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
+        
         BoundStatement bs = new BoundStatement(DELETE_FROM_RESERVATIONS);
         bs.bind(trainId, tripDate, car, resId);
         session.execute(bs);
         logger.info("Reservation " + resId + " deleted");
-
-        upsertOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
     }
 
     public int getSumReservedSeatsByCar(int trainId, String tripDate, int car) {

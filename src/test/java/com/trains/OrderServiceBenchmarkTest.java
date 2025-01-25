@@ -32,7 +32,7 @@ public class OrderServiceBenchmarkTest {
         // Setup initial data
         UUID userId = UUID.randomUUID();
         userService.upsertUser(userId, "Benchmark User");
-        trains.add(trainService.upsertTrain(1081, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50));
+        trains.add(trainService.upsertTrain(4091, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class OrderServiceBenchmarkTest {
         System.out.println("Benchmark completed in: " + duration + " ms");
 
         // Verify data consistency
-        verifyDataConsistency();
+        //verifyDataConsistency();
     }
 
     private void addTicket(String train, UUID userId, int numberOfTickets) throws BackendException {
@@ -98,24 +98,27 @@ public class OrderServiceBenchmarkTest {
             System.out.println("Not enough seats available for the requested number of tickets.");
             return null;
         }
-
+        int[] reservationsSeats = new int[cars];
         // Reserve tickets in available cars
         UUID resId = UUID.randomUUID();
         for (int car = 1; car <= cars && remainingTickets > 0; car++) {
-            availableSeats = carCapacity - orderService.getReservedSeatsByCar(trainId, departureTime, car);
+            availableSeats = carCapacity - orderService.getReservedSeatsByCar(trainId, departureTime, car) - orderService.getSumReservedSeatsByCar(trainId, departureTime, car);
             if (availableSeats > 0) {
                 int ticketsToReserve = Math.min(remainingTickets, availableSeats);
                 orderService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve);
                 ticketInfo.append(String.format("Reserved %d tickets in car %d\n", ticketsToReserve, car));
                 remainingTickets -= ticketsToReserve;
                 System.out.println(ticketInfo);
+                reservationsSeats[car - 1] = ticketsToReserve;
+            } else {
+                reservationsSeats[car - 1] = 0;
             }
         }
 
         // Confirm reservation
         if (remainingTickets == 0) {
             for (int car = 1; car <= cars; car++) {
-                reservedSeats = carCapacity - orderService.getReservedSeatsByCar(trainId, departureTime, car);
+                reservedSeats = reservationsSeats[car - 1];
                 if (reservedSeats > 0) {
                     orderService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats);
                 }

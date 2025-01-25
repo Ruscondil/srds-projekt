@@ -41,9 +41,15 @@ public class OrderService {
     public TrainService getTrainService() {return trainService;}
 
     private void prepareStatements() {
-        SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;");
-        INSERT_INTO_ORDERS = session.prepare("INSERT INTO orders (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);");
-        DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;");
+        if (SELECT_ALL_FROM_ORDERS == null) {
+            SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;");
+        }
+        if (INSERT_INTO_ORDERS == null) {
+            INSERT_INTO_ORDERS = session.prepare("INSERT INTO orders (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);");
+        }
+        if (DELETE_ALL_FROM_ORDERS == null) {
+            DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;");
+        }
         if (SELECT_SUM_SEATS_AMOUNT == null) {
             SELECT_SUM_SEATS_AMOUNT = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ?");
         }

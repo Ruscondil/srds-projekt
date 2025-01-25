@@ -14,6 +14,16 @@ CREATE TABLE IF NOT EXISTS orders (
    PRIMARY KEY ((train_id, trip_date), car, order_id)
 );
 
+CREATE TABLE IF NOT EXISTS reservations (
+   res_id uuid,
+   train_id int,
+   trip_date timestamp,
+   user_id uuid,
+   car int,
+   seats_amount int,
+   PRIMARY KEY ((train_id, trip_date), car, res_id)
+);
+
 CREATE TABLE IF NOT EXISTS users (
    user_id uuid,
    name text,

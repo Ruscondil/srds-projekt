@@ -63,6 +63,9 @@ public class OrderServiceBenchmarkTest {
         long duration = endTime - startTime;
 
         System.out.println("Benchmark completed in: " + duration + " ms");
+
+        // Verify data consistency
+        verifyDataConsistency();
     }
 
     private void addTicket(String train, UUID userId, int numberOfTickets) throws BackendException {
@@ -78,25 +81,61 @@ public class OrderServiceBenchmarkTest {
 		}
 	}
     private String reserveTickets(UUID orderId, String train, UUID userId, int numberOfTickets) {
-		String[] trainDetails = train.split(", ");
-		int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
-		int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
-		int carCapacity = Integer.parseInt(trainDetails[3].split(": ")[1]);
+        String[] trainDetails = train.split(", ");
+        int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
+        int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
+        int carCapacity = Integer.parseInt(trainDetails[3].split(": ")[1]);
         String departureTime = trainDetails[1].split(": ")[1];
-		int remainingTickets = numberOfTickets;
-		StringBuilder ticketInfo = new StringBuilder();
-		for (int car = 1; car <= cars && remainingTickets > 0; car++) {
-			int availableSeats = carCapacity - orderService.getReservedSeats(trainId, departureTime, car);
-            if (availableSeats > 0) {
-				int ticketsToReserve = Math.min(remainingTickets, availableSeats);
-				orderService.upsertOrder(orderId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve);
-				ticketInfo.append(String.format("Reserved %d tickets in car %d\n", ticketsToReserve, car));
-				remainingTickets -= ticketsToReserve;
-                System.out.println(ticketInfo);
-			}
-		}
+        int remainingTickets = numberOfTickets;
+        StringBuilder ticketInfo = new StringBuilder();
 
-		return remainingTickets > 0 ? null : ticketInfo.toString();
-	}
+        // Check availability in all cars first
+        int totalCapacity = cars * carCapacity;
+        int reservedSeats = orderService.getReservedSeats(trainId, departureTime);
+		int availableSeats = totalCapacity - reservedSeats;
+
+        if (availableSeats < numberOfTickets) {
+            System.out.println("Not enough seats available for the requested number of tickets.");
+            return null;
+        }
+
+        // Reserve tickets in available cars
+        UUID resId = UUID.randomUUID();
+        for (int car = 1; car <= cars && remainingTickets > 0; car++) {
+            availableSeats = carCapacity - orderService.getReservedSeatsByCar(trainId, departureTime, car);
+            if (availableSeats > 0) {
+                int ticketsToReserve = Math.min(remainingTickets, availableSeats);
+                orderService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve);
+                ticketInfo.append(String.format("Reserved %d tickets in car %d\n", ticketsToReserve, car));
+                remainingTickets -= ticketsToReserve;
+                System.out.println(ticketInfo);
+            }
+        }
+
+        // Confirm reservation
+        if (remainingTickets == 0) {
+            for (int car = 1; car <= cars; car++) {
+                reservedSeats = carCapacity - orderService.getReservedSeatsByCar(trainId, departureTime, car);
+                if (reservedSeats > 0) {
+                    orderService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats);
+                }
+            }
+        }
+
+        return remainingTickets > 0 ? null : ticketInfo.toString();
+    }
+
+    private void verifyDataConsistency() {
+        // Query the database to check for data consistency
+        String allOrders = orderService.selectAllOrders();
+        String allUserOrders = orderService.getUserOrderService().selectAllUsersOrders();
+
+        // Print the results for manual verification
+        System.out.println("All Orders: \n" + allOrders);
+        System.out.println("All User Orders: \n" + allUserOrders);
+
+        // Add additional checks if needed to programmatically verify consistency
+        // For example, you can parse the results and compare counts or specific values
+    }
 
 }

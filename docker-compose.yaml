@@ -16,8 +16,8 @@ services:
       - CASSANDRA_CLUSTER_NAME=MyCluster
       - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
       - CASSANDRA_DC=dc1
-      - MAX_HEAP_SIZE=128M
-      - HEAP_NEWSIZE=24M
+      - MAX_HEAP_SIZE=512M
+      - HEAP_NEWSIZE=128M
     volumes:
       - cassandra_data1:/var/lib/cassandra:rw
     restart:
@@ -46,8 +46,8 @@ services:
       - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
       - CASSANDRA_DC=dc1
       - CASSANDRA_SEEDS=cassandra1
-      - MAX_HEAP_SIZE=128M
-      - HEAP_NEWSIZE=24M
+      - MAX_HEAP_SIZE=512M
+      - HEAP_NEWSIZE=128M
     depends_on:
       cassandra1:
         condition: service_healthy
@@ -79,8 +79,8 @@ services:
       - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
       - CASSANDRA_DC=dc1
       - CASSANDRA_SEEDS=cassandra1
-      - MAX_HEAP_SIZE=128M
-      - HEAP_NEWSIZE=24M
+      - MAX_HEAP_SIZE=512M
+      - HEAP_NEWSIZE=128M
     depends_on:
       cassandra2:
         condition: service_healthy

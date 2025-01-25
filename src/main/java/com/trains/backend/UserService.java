@@ -62,6 +62,19 @@ public class UserService {
         return users;
     }
 
+    public Client getUser(UUID userId) {
+        String query = "SELECT * FROM users WHERE user_id = ?";
+        BoundStatement bs = new BoundStatement(session.prepare(query));
+        bs.bind(userId);
+        ResultSet rs = session.execute(bs);
+        Row row = rs.one();
+        if (row != null) {
+            String name = row.getString("name");
+            return new Client(userId, name);
+        }
+        return null;
+    }
+
     public void upsertUser(UUID userId, String name) {
         BoundStatement bs = new BoundStatement(INSERT_INTO_USERS);
         bs.bind(userId, name);

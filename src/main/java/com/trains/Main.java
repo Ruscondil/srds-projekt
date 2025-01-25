@@ -37,26 +37,29 @@ public class Main {
         TrainService trainService = session.getTrainService();
         OrderService orderService = session.getOrderService();
 
-        UUID user1 = UUID.randomUUID();
-        userService.upsertUser(user1, "Jon Snow");
-        UUID user2 = UUID.randomUUID();
-        userService.upsertUser(user2, "Jane Doe");
-        UUID user3 = UUID.randomUUID();
-        userService.upsertUser(user3, "Alice Cooper");
-        UUID user4 = UUID.randomUUID();
-        userService.upsertUser(user4, "Bob Marley");
+        UUID user1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        UUID user2 = UUID.fromString("22222222-2222-2222-2222-222222222222");
+        UUID user3 = UUID.fromString("33333333-3333-3333-3333-333333333333");
+        UUID user4 = UUID.fromString("44444444-4444-4444-4444-444444444444");
 
-        trainService.upsertTrain(8022, Timestamp.valueOf("2024-12-28 08:00:00"), 4, 100);
-        trainService.upsertTrain(1001, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50);
-        trainService.upsertTrain(1212, Timestamp.valueOf("2024-12-28 12:30:00"), 3, 150);
+        if (userService.getUser(user1) == null) {
+            userService.upsertUser(user1, "Jon Snow");
+            userService.upsertUser(user2, "Jane Doe");
+            userService.upsertUser(user3, "Alice Cooper");
+            userService.upsertUser(user4, "Bob Marley");
 
-        orderService.upsertOrder(UUID.randomUUID(), 8022, Timestamp.valueOf("2024-12-28 08:00:00"), user1, 2, 4);
-        orderService.upsertOrder(UUID.randomUUID(), 8022, Timestamp.valueOf("2024-12-28 08:00:00"), user4, 1, 3);
-        orderService.upsertOrder(UUID.randomUUID(), 1001, Timestamp.valueOf("2024-12-28 11:00:00"), user2, 4, 2);
-        orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"), user3, 5, 6);
-        orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"), user3, 6, 8);
-        orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"), user3, 6, 140);
-        orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"), user2, 6, 5);
+            trainService.upsertTrain(8022, Timestamp.valueOf("2024-12-28 08:00:00"), 4, 100);
+            trainService.upsertTrain(1001, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50);
+            trainService.upsertTrain(1212, Timestamp.valueOf("2024-12-28 12:30:00"), 3, 150);
+
+            orderService.upsertOrder(UUID.randomUUID(), 8022, Timestamp.valueOf("2024-12-28 08:00:00"), user1, 2, 4);
+            orderService.upsertOrder(UUID.randomUUID(), 8022, Timestamp.valueOf("2024-12-28 08:00:00"), user4, 1, 3);
+            orderService.upsertOrder(UUID.randomUUID(), 1001, Timestamp.valueOf("2024-12-28 11:00:00"), user2, 4, 2);
+            orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"), user3, 5, 6);
+            orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"), user3, 6, 8);
+            orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"), user3, 6, 140);
+            orderService.upsertOrder(UUID.randomUUID(), 1212, Timestamp.valueOf("2024-12-28 12:30:00"), user2, 6, 5);
+        }
 
         ClientInputHandler clientInputHandler = new ClientInputHandler(userService, session);
         clientInputHandler.handleInput();

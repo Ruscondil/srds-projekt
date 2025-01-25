@@ -22,6 +22,7 @@ public class TrainService {
     private static PreparedStatement DELETE_ALL_FROM_TRAINS;
     private static PreparedStatement SELECT_AVAILABLE_TRAINS;
     private static PreparedStatement SELECT_TRAIN;
+    private static PreparedStatement SELECT_SUM_SEATS_AMOUNT;
 
     public TrainService(Session session) {
         this.session = session;
@@ -43,6 +44,9 @@ public class TrainService {
         }
         if (SELECT_TRAIN == null) {
             SELECT_TRAIN = session.prepare("SELECT * FROM trains WHERE train_id = ? AND trip_date = ?;");
+        }
+        if (SELECT_SUM_SEATS_AMOUNT == null) {
+            SELECT_SUM_SEATS_AMOUNT = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ?");
         }
     }
 
@@ -105,14 +109,25 @@ public class TrainService {
 
         for (Row row : rs) {
             int trainId = row.getInt("train_id");
-            String tripDate = row.getTimestamp("trip_date").toString();
+            Date tripDate = row.getTimestamp("trip_date");
             int cars = row.getInt("cars");
             int seatsPerCar = row.getInt("seats_per_car");
-            
-            trains.add(String.format("Train ID: %d, Departure: %s, Cars: %d, Seats Per Car: %d", trainId, tripDate, cars, seatsPerCar));
+            int totalSeats = cars * seatsPerCar;
+            int reservedSeats = getReservedSeats(trainId, new Timestamp(tripDate.getTime()));
+            int availableSeats = totalSeats - reservedSeats;
+
+            trains.add(String.format("Train ID: %d, Departure: %s, Cars: %d, Seats Per Car: %d, Available Seats: %d", trainId, tripDate, cars, seatsPerCar, availableSeats));
         }
 
         return trains;
+    }
+
+    private int getReservedSeats(int trainId, Timestamp tripDate) {
+        BoundStatement bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT);
+        bs.bind(trainId, tripDate);
+        ResultSet rs = session.execute(bs);
+        Row row = rs.one();
+        return row != null ? row.getInt(0) : 0;
     }
 
     public void deleteAllTrains() {

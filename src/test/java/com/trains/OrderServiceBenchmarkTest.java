@@ -64,6 +64,9 @@ public class OrderServiceBenchmarkTest {
 
         System.out.println("Benchmark completed in: " + duration + " ms");
 
+        // Resolve conflicts after the benchmark
+        resolveConflictsForAllCars();
+
         // Verify data consistency
         //verifyDataConsistency();
     }
@@ -121,11 +124,24 @@ public class OrderServiceBenchmarkTest {
                 reservedSeats = reservationsSeats[car - 1];
                 if (reservedSeats > 0) {
                     orderService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats);
+                    orderService.resolveConflictsForAllCars(trainId, Timestamp.valueOf(departureTime)); // Ensure conflicts are resolved after confirmation
                 }
             }
         }
 
         return remainingTickets > 0 ? null : ticketInfo.toString();
+    }
+
+    private void resolveConflictsForAllCars() {
+        String[] trainDetails = trains.get(0).split(", ");
+        int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
+        String departureTime = trainDetails[1].split(": ")[1];
+        Timestamp tripDate = Timestamp.valueOf(departureTime);
+        int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
+
+        for (int car = 1; car <= cars; car++) {
+            orderService.resolveConflicts(trainId, tripDate, car);
+        }
     }
 
     private void verifyDataConsistency() {

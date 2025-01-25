@@ -5,8 +5,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,6 +31,8 @@ public class OrderServiceBenchmarkTest {
         UUID userId = UUID.randomUUID();
         userService.upsertUser(userId, "Benchmark User");
         trains.add(trainService.upsertTrain(4091, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50));
+        trains.add(trainService.upsertTrain(4092, Timestamp.valueOf("2024-12-28 12:00:00"), 4, 60));
+        trains.add(trainService.upsertTrain(4093, Timestamp.valueOf("2024-12-28 13:00:00"), 6, 40));
     }
 
     @Test
@@ -46,8 +46,8 @@ public class OrderServiceBenchmarkTest {
             executorService.submit(() -> {
                 UUID orderId = UUID.randomUUID();
                 assertDoesNotThrow(() -> {
-                    addTicket(trains.get(0), UUID.randomUUID(), 1);
-                    //orderService.upsertOrder(orderId, 1001, Timestamp.valueOf("2024-12-28 11:00:00"), UUID.randomUUID(), 1, 1);
+                    String train = trains.get(new Random().nextInt(trains.size()));
+                    addTicket(train, UUID.randomUUID(), 1);
                 });
             });
         }
@@ -72,17 +72,18 @@ public class OrderServiceBenchmarkTest {
     }
 
     private void addTicket(String train, UUID userId, int numberOfTickets) throws BackendException {
-		UUID orderId = UUID.randomUUID();
+        UUID orderId = UUID.randomUUID();
 
-		String ticketInfo = reserveTickets(orderId, train, userId, numberOfTickets);
+        String ticketInfo = reserveTickets(orderId, train, userId, numberOfTickets);
 
-		if (ticketInfo == null) {
-			System.out.println("Not enough seats available for the requested number of tickets.");
-		} else {
-			System.out.println("Tickets reserved successfully:");
-			System.out.println(ticketInfo);
-		}
-	}
+        if (ticketInfo == null) {
+            System.out.println("Not enough seats available for the requested number of tickets.");
+        } else {
+            System.out.println("Tickets reserved successfully:");
+            System.out.println(ticketInfo);
+        }
+    }
+
     private String reserveTickets(UUID orderId, String train, UUID userId, int numberOfTickets) {
         String[] trainDetails = train.split(", ");
         int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
@@ -95,7 +96,7 @@ public class OrderServiceBenchmarkTest {
         // Check availability in all cars first
         int totalCapacity = cars * carCapacity;
         int reservedSeats = orderService.getReservedSeats(trainId, departureTime);
-		int availableSeats = totalCapacity - reservedSeats;
+        int availableSeats = totalCapacity - reservedSeats;
 
         if (availableSeats < numberOfTickets) {
             System.out.println("Not enough seats available for the requested number of tickets.");
@@ -104,7 +105,9 @@ public class OrderServiceBenchmarkTest {
         int[] reservationsSeats = new int[cars];
         // Reserve tickets in available cars
         UUID resId = UUID.randomUUID();
-        for (int car = 1; car <= cars && remainingTickets > 0; car++) {
+        Random random = new Random();
+        while (remainingTickets > 0) {
+            int car = random.nextInt(cars) + 1;
             availableSeats = carCapacity - orderService.getReservedSeatsByCar(trainId, departureTime, car) - orderService.getSumReservedSeatsByCar(trainId, departureTime, car);
             if (availableSeats > 0) {
                 int ticketsToReserve = Math.min(remainingTickets, availableSeats);
@@ -113,8 +116,6 @@ public class OrderServiceBenchmarkTest {
                 remainingTickets -= ticketsToReserve;
                 System.out.println(ticketInfo);
                 reservationsSeats[car - 1] = ticketsToReserve;
-            } else {
-                reservationsSeats[car - 1] = 0;
             }
         }
 
@@ -133,14 +134,16 @@ public class OrderServiceBenchmarkTest {
     }
 
     private void resolveConflictsForAllCars() {
-        String[] trainDetails = trains.get(0).split(", ");
-        int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
-        String departureTime = trainDetails[1].split(": ")[1];
-        Timestamp tripDate = Timestamp.valueOf(departureTime);
-        int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
+        for (String train : trains) {
+            String[] trainDetails = train.split(", ");
+            int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
+            String departureTime = trainDetails[1].split(": ")[1];
+            Timestamp tripDate = Timestamp.valueOf(departureTime);
+            int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
 
-        for (int car = 1; car <= cars; car++) {
-            orderService.resolveConflicts(trainId, tripDate, car);
+            for (int car = 1; car <= cars; car++) {
+                orderService.resolveConflicts(trainId, tripDate, car);
+            }
         }
     }
 

@@ -21,6 +21,7 @@ public class OrderService {
     private static PreparedStatement SELECT_ALL_FROM_ORDERS;
     private static PreparedStatement INSERT_INTO_ORDERS;
     private static PreparedStatement DELETE_ALL_FROM_ORDERS;
+    private static PreparedStatement SELECT_SUM_SEATS_AMOUNT_BY_CAR;
     private static PreparedStatement SELECT_SUM_SEATS_AMOUNT;
 
     private UserOrderService userOrderService;
@@ -43,7 +44,8 @@ public class OrderService {
         SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;");
         INSERT_INTO_ORDERS = session.prepare("INSERT INTO orders (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);");
         DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;");
-        SELECT_SUM_SEATS_AMOUNT = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?");
+        SELECT_SUM_SEATS_AMOUNT_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?");
+        SELECT_SUM_SEATS_AMOUNT = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ?");
     }
 
     public String selectAllOrders() {
@@ -67,7 +69,7 @@ public class OrderService {
     }
 
     public void upsertOrder(UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount) {
-        int reservedSeats = getReservedSeats(trainId, tripDate.toString(), car);
+        int reservedSeats = getReservedSeatsByCar(trainId, tripDate.toString(), car);
         String selectedTrain = trainService.selectTrain(trainId, tripDate);
         if (selectedTrain == null) {
             System.out.println("Train not found");
@@ -91,8 +93,16 @@ public class OrderService {
          }
     }
 
-    public int getReservedSeats(int trainId, String tripDate, int car) {
+    public int getReservedSeats(int trainId, String tripDate) {
         BoundStatement bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT);
+        bs.bind(trainId, Timestamp.valueOf(tripDate));
+        ResultSet rs = session.execute(bs);
+        Row row = rs.one();
+        return row != null ? row.getInt(0) : 0;
+    }
+
+    public int getReservedSeatsByCar(int trainId, String tripDate, int car) {
+        BoundStatement bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT_BY_CAR);
         bs.bind(trainId, Timestamp.valueOf(tripDate), car);
         ResultSet rs = session.execute(bs);
         Row row = rs.one();

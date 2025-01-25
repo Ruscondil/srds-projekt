@@ -153,13 +153,22 @@ public class ClientInputHandler {
 		int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
 		int carCapacity = Integer.parseInt(trainDetails[3].split(": ")[1]);
 
+		int totalCapacity = cars * carCapacity;
+		int reservedSeats = orderService.getReservedSeats(trainId, formattedDepartureTime);
+		int availableSeats = totalCapacity - reservedSeats;
+
+		if (availableSeats < numberOfTickets) {
+			return null;
+		}
+
 		int remainingTickets = numberOfTickets;
 		StringBuilder ticketInfo = new StringBuilder();
 
 		for (int car = 1; car <= cars && remainingTickets > 0; car++) {
-			int availableSeats = carCapacity - orderService.getReservedSeats(trainId, formattedDepartureTime, car);
-			if (availableSeats > 0) {
-				int ticketsToReserve = Math.min(remainingTickets, availableSeats);
+			int availableSeatsInCar = carCapacity - orderService.getReservedSeatsByCar(trainId, formattedDepartureTime, car);
+			System.out.println("Car " + car + ": Available seats: " + availableSeatsInCar + ", Car capacity: " + carCapacity + ", Reserved seats: " + orderService.getReservedSeatsByCar(trainId, formattedDepartureTime, car));
+			if (availableSeatsInCar > 0) {
+				int ticketsToReserve = Math.min(remainingTickets, availableSeatsInCar);
 				orderService.upsertOrder(orderId, trainId, Timestamp.valueOf(formattedDepartureTime), userId, car, ticketsToReserve);
 				ticketInfo.append(String.format("Reserved %d tickets in car %d\n", ticketsToReserve, car));
 				remainingTickets -= ticketsToReserve;
@@ -170,6 +179,10 @@ public class ClientInputHandler {
 	}
 
 	private void scanTicket(Scanner scanner) throws BackendException {
+		if (currentClient == null) {
+			throw new BackendException("Najpierw trzeba się zalogować.");
+		}
+
 		UUID userId = currentClient.getUserId();
 
 		List<String> availableTrains = trainService.getAvailableTrains(10);
@@ -214,10 +227,6 @@ public class ClientInputHandler {
 		System.out.println(userId);
 
 		userOrderService.selectOrders(trainId, Timestamp.valueOf(tripDate), userId);
-
-		
-
-
 	}
 
 	private void login(Scanner scanner) throws BackendException {

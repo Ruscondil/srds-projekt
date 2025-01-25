@@ -9,6 +9,8 @@ import com.trains.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -44,6 +46,20 @@ public class UserService {
         }
 
         return builder.toString();
+    }
+
+    public List<Client> getAllUsers() {
+        List<Client> users = new ArrayList<>();
+        BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_USERS);
+        ResultSet rs = session.execute(bs);
+
+        for (Row row : rs) {
+            UUID userId = row.getUUID("user_id");
+            String name = row.getString("name");
+            users.add(new Client(userId, name));
+        }
+
+        return users;
     }
 
     public void upsertUser(UUID userId, String name) {

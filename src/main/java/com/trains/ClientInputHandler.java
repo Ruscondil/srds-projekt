@@ -32,6 +32,7 @@ public class ClientInputHandler {
 		System.out.println("3 - Print tables");
 		System.out.println("4 - Add ticket");
 		System.out.println("5 - Scan ticket");
+		System.out.println("6 - Login");
 	}
 
 	public void handleInput() {
@@ -62,6 +63,11 @@ public class ClientInputHandler {
 					}
 					case 5: {
 						scanTicket(scanner);
+						break;
+					}
+					case 6: {
+						login(scanner);
+						break;
 					}
 					default: System.out.println("Wrong action");
 				}
@@ -212,6 +218,29 @@ public class ClientInputHandler {
 		
 
 
+	}
+
+	private void login(Scanner scanner) throws BackendException {
+		List<Client> users = userService.getAllUsers();
+		if (users.isEmpty()) {
+			System.out.println("No users available.");
+			return;
+		}
+
+		System.out.println("Available users:");
+		for (int i = 0; i < users.size(); i++) {
+			System.out.println((i + 1) + " - " + users.get(i).getName());
+		}
+
+		System.out.print("Choose user: ");
+		int userChoice = Integer.parseInt(scanner.nextLine());
+		if (userChoice < 1 || userChoice > users.size()) {
+			System.out.println("Invalid choice.");
+			return;
+		}
+
+		currentClient = users.get(userChoice - 1);
+		System.out.println("Logged in as " + currentClient.getName());
 	}
 
 }

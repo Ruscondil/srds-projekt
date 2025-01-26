@@ -79,7 +79,7 @@ public class OrderService {
     }
 
     public void upsertOrder(UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount) {
-        int reservedSeats = getReservedSeatsByCar(trainId, tripDate.toString(), car);
+        int reservedSeats = getTakenSeatsByCar(trainId, tripDate.toString(), car);
         String selectedTrain = trainService.selectTrain(trainId, tripDate);
         if (selectedTrain == null) {
             System.out.println("Train not found");
@@ -103,7 +103,7 @@ public class OrderService {
          }
     }
 
-    public int getReservedSeats(int trainId, String tripDate) {
+    public int getTakenSeats(int trainId, String tripDate) {
         BoundStatement bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT);
         bs.bind(trainId, Timestamp.valueOf(tripDate));
         ResultSet rs = session.execute(bs);
@@ -111,7 +111,7 @@ public class OrderService {
         return row != null ? row.getInt(0) : 0;
     }
 
-    public int getReservedSeatsByCar(int trainId, String tripDate, int car) {
+    public int getTakenSeatsByCar(int trainId, String tripDate, int car) {
         BoundStatement bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT_BY_CAR);
         bs.bind(trainId, Timestamp.valueOf(tripDate), car);
         ResultSet rs = session.execute(bs);

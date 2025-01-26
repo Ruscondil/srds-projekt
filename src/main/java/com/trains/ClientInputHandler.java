@@ -154,7 +154,7 @@ public class ClientInputHandler {
 		int carCapacity = Integer.parseInt(trainDetails[3].split(": ")[1]);
 
 		int totalCapacity = cars * carCapacity;
-		int reservedSeats = orderService.getReservedSeats(trainId, formattedDepartureTime);
+		int reservedSeats = orderService.getTakenSeats(trainId, formattedDepartureTime);
 		int availableSeats = totalCapacity - reservedSeats;
 
 		if (availableSeats < numberOfTickets) {
@@ -165,8 +165,8 @@ public class ClientInputHandler {
 		StringBuilder ticketInfo = new StringBuilder();
 
 		for (int car = 1; car <= cars && remainingTickets > 0; car++) {
-			int availableSeatsInCar = carCapacity - orderService.getReservedSeatsByCar(trainId, formattedDepartureTime, car);
-			System.out.println("Car " + car + ": Available seats: " + availableSeatsInCar + ", Car capacity: " + carCapacity + ", Reserved seats: " + orderService.getReservedSeatsByCar(trainId, formattedDepartureTime, car));
+			int availableSeatsInCar = carCapacity - orderService.getTakenSeatsByCar(trainId, formattedDepartureTime, car);
+			System.out.println("Car " + car + ": Available seats: " + availableSeatsInCar + ", Car capacity: " + carCapacity + ", Reserved seats: " + orderService.getTakenSeatsByCar(trainId, formattedDepartureTime, car));
 			if (availableSeatsInCar > 0) {
 				int ticketsToReserve = Math.min(remainingTickets, availableSeatsInCar);
 				orderService.upsertOrder(orderId, trainId, Timestamp.valueOf(formattedDepartureTime), userId, car, ticketsToReserve);

@@ -113,7 +113,7 @@ public class TrainService {
             int cars = row.getInt("cars");
             int seatsPerCar = row.getInt("seats_per_car");
             int totalSeats = cars * seatsPerCar;
-            int reservedSeats = getReservedSeats(trainId, new Timestamp(tripDate.getTime()));
+            int reservedSeats = getTakenSeats(trainId, new Timestamp(tripDate.getTime()));
             int availableSeats = totalSeats - reservedSeats;
 
             trains.add(String.format("Train ID: %d, Departure: %s, Cars: %d, Seats Per Car: %d, Available Seats: %d", trainId, tripDate, cars, seatsPerCar, availableSeats));
@@ -122,7 +122,7 @@ public class TrainService {
         return trains;
     }
 
-    private int getReservedSeats(int trainId, Timestamp tripDate) {
+    private int getTakenSeats(int trainId, Timestamp tripDate) {
         BoundStatement bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT);
         bs.bind(trainId, tripDate);
         ResultSet rs = session.execute(bs);

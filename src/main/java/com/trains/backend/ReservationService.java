@@ -88,7 +88,7 @@ public class ReservationService {
     }
 
     public void resolveConflicts(int trainId, Timestamp tripDate, int car, OrderService orderService) {
-        int reservedSeats = orderService.getReservedSeatsByCar(trainId, tripDate.toString(), car);
+        int reservedSeats = orderService.getTakenSeatsByCar(trainId, tripDate.toString(), car);
         int reservedSeatsInReservations = getSumReservedSeatsByCar(trainId, tripDate.toString(), car);
         int totalReservedSeats = reservedSeats + reservedSeatsInReservations;
 

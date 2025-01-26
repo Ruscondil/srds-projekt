@@ -1,6 +1,7 @@
 package com.trains.backend;
 
 import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -28,9 +29,9 @@ public class UserService {
     }
 
     private void prepareStatements() {
-        SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;");
-        INSERT_INTO_USERS = session.prepare("INSERT INTO users (user_id, name) VALUES (?, ?);");
-        DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
+        SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+        INSERT_INTO_USERS = session.prepare("INSERT INTO users (user_id, name) VALUES (?, ?);").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+        DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
     }
 
     public String selectAllUsers() {

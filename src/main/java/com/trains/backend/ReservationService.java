@@ -5,6 +5,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.ConsistencyLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,19 +29,19 @@ public class ReservationService {
 
     private void prepareStatements() {
         if (INSERT_INTO_RESERVATIONS == null) {
-            INSERT_INTO_RESERVATIONS = session.prepare("INSERT INTO reservations (res_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);");
+            INSERT_INTO_RESERVATIONS = session.prepare("INSERT INTO reservations (res_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (DELETE_FROM_RESERVATIONS == null) {
-            DELETE_FROM_RESERVATIONS = session.prepare("DELETE FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ? AND res_id = ?;");
+            DELETE_FROM_RESERVATIONS = session.prepare("DELETE FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ? AND res_id = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (DELETE_ALL_FROM_RESERVATIONS == null) {
-            DELETE_ALL_FROM_RESERVATIONS = session.prepare("TRUNCATE reservations;");
+            DELETE_ALL_FROM_RESERVATIONS = session.prepare("TRUNCATE reservations;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (SELECT_SUM_RESERVED_SEATS_BY_CAR == null) {
-            SELECT_SUM_RESERVED_SEATS_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ?;");
+            SELECT_SUM_RESERVED_SEATS_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (SELECT_RESERVATIONS_BY_CAR == null) {
-            SELECT_RESERVATIONS_BY_CAR = session.prepare("SELECT res_id, seats_amount FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ?");
+            SELECT_RESERVATIONS_BY_CAR = session.prepare("SELECT res_id, seats_amount FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ?").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
     }
 

@@ -21,6 +21,7 @@ public class Main {
 	public static void main(String[] args) throws IOException, BackendException {
         String contactPoint = null;
         String keyspace = null;
+        String consistency = null;
 		Client currentClient = null;
 
         Properties properties = new Properties();
@@ -29,11 +30,12 @@ public class Main {
 
             contactPoint = properties.getProperty("contact_point");
             keyspace = properties.getProperty("keyspace");
+            consistency = properties.getProperty("consistency");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
 
-        BackendSession session = new BackendSession(contactPoint, keyspace);
+        BackendSession session = new BackendSession(contactPoint, keyspace, consistency);
         UserService userService = session.getUserService();
         TrainService trainService = session.getTrainService();
         OrderService orderService = session.getOrderService();

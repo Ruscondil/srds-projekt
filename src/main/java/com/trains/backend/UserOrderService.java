@@ -5,6 +5,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.ConsistencyLevel;
 import com.trains.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +30,16 @@ public class UserOrderService {
 
     private void prepareStatements() {
         if (SELECT_ALL_FROM_USERS_ORDERS == null) {
-            SELECT_ALL_FROM_USERS_ORDERS = session.prepare("SELECT * FROM orders_per_user;");
+            SELECT_ALL_FROM_USERS_ORDERS = session.prepare("SELECT * FROM orders_per_user;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (INSERT_INTO_USERS_ORDERS == null) {
-            INSERT_INTO_USERS_ORDERS = session.prepare("INSERT INTO orders_per_user (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);");
+            INSERT_INTO_USERS_ORDERS = session.prepare("INSERT INTO orders_per_user (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (DELETE_ALL_FROM_USERS_ORDERS == null) {
-            DELETE_ALL_FROM_USERS_ORDERS = session.prepare("TRUNCATE orders_per_user;");
+            DELETE_ALL_FROM_USERS_ORDERS = session.prepare("TRUNCATE orders_per_user;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (SELECT_ORDERS == null) {
-            SELECT_ORDERS = session.prepare("SELECT * FROM orders_per_user WHERE train_id = ? AND trip_date = ? AND user_id = ?;");
+            SELECT_ORDERS = session.prepare("SELECT * FROM orders_per_user WHERE train_id = ? AND trip_date = ? AND user_id = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
     }
 

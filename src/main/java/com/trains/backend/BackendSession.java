@@ -2,6 +2,8 @@ package com.trains.backend;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.QueryOptions;
 import com.trains.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ public class BackendSession {
     private UserOrderService userOrderService;
     private ReservationService reservationService;
 
-    public BackendSession(String contactPoints, String keyspace) throws BackendException {
+    public BackendSession(String contactPoints, String keyspace, String consistency) throws BackendException {
         Cluster.Builder clusterBuilder = Cluster.builder();
         for (String contactPoint : splitContactPoints(contactPoints)) {
             String[] parts = contactPoint.split(":");
@@ -27,10 +29,11 @@ public class BackendSession {
                 clusterBuilder.withPort(Integer.parseInt(parts[1].trim()));
             }
         }
+        clusterBuilder.withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.valueOf(consistency)));
         Cluster cluster = clusterBuilder.build();
         try {
             session = cluster.connect(keyspace);
-            System.out.println("Connected to keyspace: " + keyspace);
+            System.out.println("Connected to keyspace: " + keyspace + " with consistency: " + consistency);
         } catch (Exception e) {
             throw new BackendException("Could not connect to the cluster. " + e.getMessage() + ".", e);
         }

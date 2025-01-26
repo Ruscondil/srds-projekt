@@ -77,7 +77,7 @@ public class ReservationService {
         //resolveConflictsForAllCars(trainId, tripDate); // Ensure conflicts are resolved after reservation
     }
 
-    public int confirmReservation(UUID resId, UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount) {
+    public int confirmReservation(UUID resId, UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount, OrderService orderService) {
         BoundStatement bs = new BoundStatement(SELECT_RESERVATION);
         bs.bind(trainId, tripDate, car, resId);
         Row res = session.execute(bs).one();
@@ -85,7 +85,7 @@ public class ReservationService {
             logger.warn("Reservation " + resId + " not found");
             return 0;
         }
-        upsertOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
+        orderService.upsertOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
         
         bs = new BoundStatement(DELETE_FROM_RESERVATIONS);
         bs.bind(trainId, tripDate, car, resId);

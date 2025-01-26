@@ -140,7 +140,7 @@ public class OrderServiceBenchmarkTest {
             for (int car = 1; car <= cars; car++) {
                 reservedSeats = reservationsSeats[car - 1];
                 if (reservedSeats > 0) {
-                    int res = reservationService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats);
+                    int res = reservationService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats, orderService);
                     if (res == 0) {
                         System.out.println("Reservation failed. Please try again.");
                     }

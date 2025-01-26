@@ -67,6 +67,7 @@ public class Main {
         orderService.deleteAllOrders();
         trainService.deleteAllTrains();
         userService.deleteAllUsers();
+        orderService.deleteAllReservations(); // Add this line to delete all reservations
 
         System.exit(0);
     }

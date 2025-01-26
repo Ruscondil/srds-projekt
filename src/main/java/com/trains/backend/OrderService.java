@@ -25,6 +25,7 @@ public class OrderService {
     private static PreparedStatement SELECT_SUM_SEATS_AMOUNT;
     private static PreparedStatement INSERT_INTO_RESERVATIONS;
     private static PreparedStatement DELETE_FROM_RESERVATIONS;
+    private static PreparedStatement DELETE_ALL_FROM_RESERVATIONS;
     private static PreparedStatement SELECT_SUM_RESERVED_SEATS_BY_CAR;
     private static PreparedStatement SELECT_RESERVATIONS_BY_CAR;
 
@@ -65,6 +66,9 @@ public class OrderService {
         }
         if (DELETE_FROM_RESERVATIONS == null) {
             DELETE_FROM_RESERVATIONS = session.prepare("DELETE FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ? AND res_id = ?;");
+        }
+        if (DELETE_ALL_FROM_RESERVATIONS == null) {
+            DELETE_ALL_FROM_RESERVATIONS = session.prepare("TRUNCATE reservations;");
         }
         if (SELECT_SUM_RESERVED_SEATS_BY_CAR == null) {
             SELECT_SUM_RESERVED_SEATS_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ?;");
@@ -141,6 +145,12 @@ public class OrderService {
         session.execute(bs);
         logger.info("All orders deleted");
         userOrderService.deleteAllUsersOrders();
+    }
+
+    public void deleteAllReservations() {
+        BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_RESERVATIONS);
+        session.execute(bs);
+        logger.info("All reservations deleted");
     }
 
     public void reserveSeats(UUID resId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount) {

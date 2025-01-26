@@ -16,6 +16,7 @@ public class BackendSession {
     private UserService userService;
     private OrderService orderService;
     private UserOrderService userOrderService;
+    private ReservationService reservationService;
 
     public BackendSession(String contactPoints, String keyspace) throws BackendException {
         Cluster.Builder clusterBuilder = Cluster.builder();
@@ -37,6 +38,7 @@ public class BackendSession {
         userService = new UserService(session);
         orderService = new OrderService(session);
         userOrderService = new UserOrderService(session);
+        reservationService = new ReservationService(session);
     }
 
     private String[] splitContactPoints(String contactPoints) {
@@ -67,6 +69,10 @@ public class BackendSession {
 
     public UserOrderService getUserOrderService() {
         return userOrderService;
+    }
+
+    public ReservationService getReservationService() {
+        return reservationService;
     }
 
     public void printAllTables() throws BackendException {

@@ -10,6 +10,7 @@ import com.trains.backend.BackendSession;
 import com.trains.backend.TrainService;
 import com.trains.backend.UserService;
 import com.trains.backend.OrderService;
+import com.trains.backend.ReservationService;
 import java.util.Scanner;
 import com.trains.ClientInputHandler;
 
@@ -36,6 +37,7 @@ public class Main {
         UserService userService = session.getUserService();
         TrainService trainService = session.getTrainService();
         OrderService orderService = session.getOrderService();
+        ReservationService reservationService = session.getReservationService();
 
         UUID user1 = UUID.fromString("11111111-1111-1111-1111-111111111111");
         UUID user2 = UUID.fromString("22222222-2222-2222-2222-222222222222");
@@ -67,7 +69,7 @@ public class Main {
         orderService.deleteAllOrders();
         trainService.deleteAllTrains();
         userService.deleteAllUsers();
-        orderService.deleteAllReservations(); // Add this line to delete all reservations
+        reservationService.deleteAllReservations();
 
         System.exit(0);
     }

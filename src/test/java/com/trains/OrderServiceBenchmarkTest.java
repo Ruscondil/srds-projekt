@@ -18,6 +18,7 @@ public class OrderServiceBenchmarkTest {
     private static OrderService orderService;
     private static UserService userService;
     private static TrainService trainService;
+    private static ReservationService reservationService;
     private static List<String> trains = new ArrayList<>();
 
     @BeforeAll
@@ -26,6 +27,7 @@ public class OrderServiceBenchmarkTest {
         orderService = session.getOrderService();
         userService = session.getUserService();
         trainService = session.getTrainService();
+        reservationService = session.getReservationService();
 
         // Setup initial data
         UUID userId = UUID.randomUUID();
@@ -108,10 +110,10 @@ public class OrderServiceBenchmarkTest {
         Random random = new Random();
         while (remainingTickets > 0) {
             int car = random.nextInt(cars) + 1;
-            availableSeats = carCapacity - orderService.getReservedSeatsByCar(trainId, departureTime, car) - orderService.getSumReservedSeatsByCar(trainId, departureTime, car);
+            availableSeats = carCapacity - orderService.getReservedSeatsByCar(trainId, departureTime, car) - reservationService.getSumReservedSeatsByCar(trainId, departureTime, car);
             if (availableSeats > 0) {
                 int ticketsToReserve = Math.min(remainingTickets, availableSeats);
-                orderService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve);
+                reservationService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve);
                 ticketInfo.append(String.format("Reserved %d tickets in car %d\n", ticketsToReserve, car));
                 remainingTickets -= ticketsToReserve;
                 System.out.println(ticketInfo);
@@ -124,8 +126,8 @@ public class OrderServiceBenchmarkTest {
             for (int car = 1; car <= cars; car++) {
                 reservedSeats = reservationsSeats[car - 1];
                 if (reservedSeats > 0) {
-                    orderService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats);
-                    orderService.resolveConflictsForAllCars(trainId, Timestamp.valueOf(departureTime)); // Ensure conflicts are resolved after confirmation
+                    reservationService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats, orderService);
+                    reservationService.resolveConflictsForAllCars(trainId, Timestamp.valueOf(departureTime), orderService); // Ensure conflicts are resolved after confirmation
                 }
             }
         }
@@ -142,7 +144,7 @@ public class OrderServiceBenchmarkTest {
             int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
 
             for (int car = 1; car <= cars; car++) {
-                orderService.resolveConflicts(trainId, tripDate, car);
+                reservationService.resolveConflicts(trainId, tripDate, car, orderService);
             }
         }
     }

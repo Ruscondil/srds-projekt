@@ -96,7 +96,7 @@ public class OrderServiceBenchmarkTest {
 
         // Check availability in all cars first
         int totalCapacity = cars * carCapacity;
-        int reservedSeats = orderService.getTakenSeats(trainId, departureTime);
+        int reservedSeats = orderService.getTakenSeats(trainId, departureTime) + reservationService.getReservedSeats(trainId, departureTime);
         int availableSeats = totalCapacity - reservedSeats;
 
         if (availableSeats < numberOfTickets) {
@@ -107,8 +107,9 @@ public class OrderServiceBenchmarkTest {
         UUID resId = UUID.randomUUID();
         Random random = new Random();
         while (remainingTickets > 0) {
-            reservedSeats = orderService.getTakenSeats(trainId, departureTime);
+            reservedSeats = orderService.getTakenSeats(trainId, departureTime) + reservationService.getReservedSeats(trainId, departureTime);
             availableSeats = totalCapacity - reservedSeats;
+            System.out.println(availableSeats);
             if (availableSeats < numberOfTickets) {
                 System.out.println("Not enough seats available for the requested number of tickets.");
                 for (int car = 1; car <= cars; car++) { 
@@ -120,6 +121,7 @@ public class OrderServiceBenchmarkTest {
             }
             int car = random.nextInt(cars) + 1;
             availableSeats = carCapacity - orderService.getTakenSeatsByCar(trainId, departureTime, car) - reservationService.getSumReservedSeatsByCar(trainId, departureTime, car);
+            System.out.println(availableSeats);
             if (availableSeats > 0) {
                 int ticketsToReserve = Math.min(remainingTickets, availableSeats);
                 int res = reservationService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve, carCapacity);

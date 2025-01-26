@@ -21,12 +21,18 @@ public class ReservationService {
     private static PreparedStatement DELETE_ALL_FROM_RESERVATIONS;
     private static PreparedStatement SELECT_SUM_RESERVED_SEATS_BY_CAR;
     private static PreparedStatement SELECT_RESERVATIONS_BY_CAR;
-    private static PreparedStatement SELECT_SUM_SEATS_AMOUNT_BY_CAR;
+    private static PreparedStatement SELECT_RESERVED_SEATS;
     private static PreparedStatement SELECT_RESERVATION;
+
+    private OrderService orderService;
 
     public ReservationService(Session session) {
         this.session = session;
         prepareStatements();
+        orderService = new OrderService(session);
+    }
+     public OrderService getOrderService() {
+        return orderService;
     }
 
     private void prepareStatements() {
@@ -39,14 +45,14 @@ public class ReservationService {
         if (DELETE_ALL_FROM_RESERVATIONS == null) {
             DELETE_ALL_FROM_RESERVATIONS = session.prepare("TRUNCATE reservations;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
+        if (SELECT_RESERVED_SEATS == null){
+            SELECT_RESERVED_SEATS = session.prepare("SELECT SUM(seats_amount) FROM reservations WHERE train_id = ? AND trip_date = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+        }
         if (SELECT_SUM_RESERVED_SEATS_BY_CAR == null) {
             SELECT_SUM_RESERVED_SEATS_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (SELECT_RESERVATIONS_BY_CAR == null) {
             SELECT_RESERVATIONS_BY_CAR = session.prepare("SELECT res_id, seats_amount FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ?").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
-        if (SELECT_SUM_SEATS_AMOUNT_BY_CAR == null) {
-            SELECT_SUM_SEATS_AMOUNT_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
         if (SELECT_RESERVATION == null) {
             SELECT_RESERVATION = session.prepare("SELECT * FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ? AND res_id = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
@@ -59,11 +65,8 @@ public class ReservationService {
         ResultSet rs = session.execute(bs);
         Row row = rs.one();
         int numOfResSeats = row != null ? row.getInt(0) : 0;
-        bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT_BY_CAR);
-        bs.bind(trainId, tripDate, car);
-        rs = session.execute(bs);
-        row = rs.one();
-        int numOfSeats = row != null ? row.getInt(0) : 0;
+        int numOfSeats = orderService.getTakenSeatsByCar(trainId, tripDate.toString(), car);
+        logger.warn("fkdlv " + numOfSeats);
         System.out.printf("%d  %d\n",numOfSeats + seatsAmount + numOfResSeats, CarCapacity);
         if (numOfSeats + seatsAmount + numOfResSeats > CarCapacity) {
             logger.warn("Not enough seats available for reservation " + resId);
@@ -72,9 +75,8 @@ public class ReservationService {
         bs = new BoundStatement(INSERT_INTO_RESERVATIONS);
         bs.bind(resId, trainId, tripDate, userId, car, seatsAmount);
         session.execute(bs);
-        //logger.info("Reservation " + resId + " created");
+        logger.info("Reservation " + resId + " created");
         return 1;
-        //resolveConflictsForAllCars(trainId, tripDate); // Ensure conflicts are resolved after reservation
     }
 
     public int confirmReservation(UUID resId, UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount, OrderService orderService) {
@@ -86,17 +88,25 @@ public class ReservationService {
             return 0;
         }
         orderService.upsertOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
-        
+
         bs = new BoundStatement(DELETE_FROM_RESERVATIONS);
         bs.bind(trainId, tripDate, car, resId);
         session.execute(bs);
-        //logger.info("Reservation " + resId + " deleted");
+        logger.info("Reservation " + resId + " deleted");
         return 1;
     }
 
     public int getSumReservedSeatsByCar(int trainId, String tripDate, int car) {
         BoundStatement bs = new BoundStatement(SELECT_SUM_RESERVED_SEATS_BY_CAR);
         bs.bind(trainId, Timestamp.valueOf(tripDate), car);
+        ResultSet rs = session.execute(bs);
+        Row row = rs.one();
+        return row != null ? row.getInt(0) : 0;
+    }
+
+    public int getReservedSeats(int trainId, String tripDate) {
+        BoundStatement bs = new BoundStatement(SELECT_RESERVED_SEATS);
+        bs.bind(trainId, Timestamp.valueOf(tripDate));
         ResultSet rs = session.execute(bs);
         Row row = rs.one();
         return row != null ? row.getInt(0) : 0;

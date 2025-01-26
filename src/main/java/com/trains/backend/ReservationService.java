@@ -45,20 +45,45 @@ public class ReservationService {
         }
     }
 
-    public void reserveSeats(UUID resId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount) {
-        BoundStatement bs = new BoundStatement(INSERT_INTO_RESERVATIONS);
+    public int reserveSeats(UUID resId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount, int CarCapacity) {
+        BoundStatement bs = new BoundStatement(SELECT_SUM_RESERVED_SEATS_BY_CAR);
+        bs.bind(trainId, tripDate, car);
+        ResultSet rs = session.execute(bs);
+        Row row = rs.one();
+        int numOfResSeats = row != null ? row.getInt(0) : 0;
+        bs = new BoundStatement(SELECT_SUM_SEATS_AMOUNT_BY_CAR);
+        bs.bind(trainId, tripDate, car);
+        rs = session.execute(bs);
+        row = rs.one();
+        int numOfSeats = row != null ? row.getInt(0) : 0;
+        System.out.printf("%d  %d\n",numOfSeats + seatsAmount + numOfResSeats, CarCapacity);
+        if (numOfSeats + seatsAmount + numOfResSeats > CarCapacity) {
+            logger.warn("Not enough seats available for reservation " + resId);
+            return 0;
+        }
+        bs = new BoundStatement(INSERT_INTO_RESERVATIONS);
         bs.bind(resId, trainId, tripDate, userId, car, seatsAmount);
         session.execute(bs);
-        logger.info("Reservation " + resId + " created");
+        //logger.info("Reservation " + resId + " created");
+        return 1;
+        //resolveConflictsForAllCars(trainId, tripDate); // Ensure conflicts are resolved after reservation
     }
 
-    public void confirmReservation(UUID resId, UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount, OrderService orderService) {
-        orderService.upsertOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
-
-        BoundStatement bs = new BoundStatement(DELETE_FROM_RESERVATIONS);
+    public int confirmReservation(UUID resId, UUID orderId, int trainId, Timestamp tripDate, UUID userId, int car, int seatsAmount) {
+        BoundStatement bs = new BoundStatement(SELECT_RESERVATION);
+        bs.bind(trainId, tripDate, car, resId);
+        Row res = session.execute(bs).one();
+        if (res == null) {
+            logger.warn("Reservation " + resId + " not found");
+            return 0;
+        }
+        upsertOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
+        
+        bs = new BoundStatement(DELETE_FROM_RESERVATIONS);
         bs.bind(trainId, tripDate, car, resId);
         session.execute(bs);
-        logger.info("Reservation " + resId + " deleted");
+        //logger.info("Reservation " + resId + " deleted");
+        return 1;
     }
 
     public int getSumReservedSeatsByCar(int trainId, String tripDate, int car) {
@@ -125,7 +150,7 @@ public class ReservationService {
         }
     }
 
-    private void deleteReservation(int trainId, Timestamp tripDate, int car, UUID resId) {
+    public void deleteReservation(int trainId, Timestamp tripDate, int car, UUID resId) {
         BoundStatement bs = new BoundStatement(DELETE_FROM_RESERVATIONS);
         bs.bind(trainId, tripDate, car, resId);
         session.execute(bs);

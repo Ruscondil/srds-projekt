@@ -39,14 +39,13 @@ public class OrderServiceBenchmarkTest {
 
     @Test
     public void benchmarkInsertOrdersWithMultipleThreads() {
-        int numberOfThreads = 100;
+        int numberOfThreads = 1000;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
 
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < numberOfThreads; i++) {
             executorService.submit(() -> {
-                UUID orderId = UUID.randomUUID();
                 assertDoesNotThrow(() -> {
                     String train = trains.get(new Random().nextInt(trains.size()));
                     addTicket(train, UUID.randomUUID(), 1);
@@ -105,19 +104,34 @@ public class OrderServiceBenchmarkTest {
             return null;
         }
         int[] reservationsSeats = new int[cars];
-        // Reserve tickets in available cars
         UUID resId = UUID.randomUUID();
         Random random = new Random();
         while (remainingTickets > 0) {
+            reservedSeats = orderService.getTakenSeats(trainId, departureTime);
+            availableSeats = totalCapacity - reservedSeats;
+            if (availableSeats < numberOfTickets) {
+                System.out.println("Not enough seats available for the requested number of tickets.");
+                for (int car = 1; car <= cars; car++) { 
+                    if (reservationsSeats[car - 1] > 0) {
+                        reservationService.deleteReservation(trainId, Timestamp.valueOf(departureTime), car, resId);
+                    }
+                }
+                return null;
+            }
             int car = random.nextInt(cars) + 1;
             availableSeats = carCapacity - orderService.getTakenSeatsByCar(trainId, departureTime, car) - reservationService.getSumReservedSeatsByCar(trainId, departureTime, car);
             if (availableSeats > 0) {
                 int ticketsToReserve = Math.min(remainingTickets, availableSeats);
-                reservationService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve);
+                int res = reservationService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve);
+                if (res == 0 ){
+                    System.out.println("Reservation failed. Please try again.");
+                    continue;
+                }
                 ticketInfo.append(String.format("Reserved %d tickets in car %d\n", ticketsToReserve, car));
                 remainingTickets -= ticketsToReserve;
                 System.out.println(ticketInfo);
                 reservationsSeats[car - 1] = ticketsToReserve;
+                //orderService.resolveConflictsForAllCars(trainId, Timestamp.valueOf(departureTime)); // Ensure conflicts are resolved after confirmation
             }
         }
 
@@ -126,8 +140,11 @@ public class OrderServiceBenchmarkTest {
             for (int car = 1; car <= cars; car++) {
                 reservedSeats = reservationsSeats[car - 1];
                 if (reservedSeats > 0) {
-                    reservationService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats, orderService);
-                    reservationService.resolveConflictsForAllCars(trainId, Timestamp.valueOf(departureTime), orderService); // Ensure conflicts are resolved after confirmation
+                    int res = reservationService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats, orderService);
+                    if (res == 0) {
+                        System.out.println("Reservation failed. Please try again.");
+                    }
+                    //orderService.resolveConflictsForAllCars(trainId, Timestamp.valueOf(departureTime)); // Ensure conflicts are resolved after confirmation
                 }
             }
         }

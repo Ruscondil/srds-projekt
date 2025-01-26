@@ -96,7 +96,7 @@ public class OrderService {
                 session.execute(bs);
                 logger.info("Order " + orderId + " upserted");
                 userOrderService.upsertUserOrder(orderId, trainId, tripDate, userId, car, seatsAmount);
-                resolveConflictsForAllCars(trainId, tripDate); // Ensure conflicts are resolved after insertion
+                // resolveConflictsForAllCars(trainId, tripDate); // Ensure conflicts are resolved after insertion
             } else {
                 logger.warn("Invalid car number " + car + " for train " + trainId + " on " + tripDate);
             }

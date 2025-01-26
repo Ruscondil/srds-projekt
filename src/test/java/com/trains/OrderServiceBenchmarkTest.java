@@ -122,7 +122,7 @@ public class OrderServiceBenchmarkTest {
             availableSeats = carCapacity - orderService.getTakenSeatsByCar(trainId, departureTime, car) - reservationService.getSumReservedSeatsByCar(trainId, departureTime, car);
             if (availableSeats > 0) {
                 int ticketsToReserve = Math.min(remainingTickets, availableSeats);
-                int res = reservationService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve);
+                int res = reservationService.reserveSeats(resId, trainId, Timestamp.valueOf(departureTime), userId, car, ticketsToReserve, carCapacity);
                 if (res == 0 ){
                     System.out.println("Reservation failed. Please try again.");
                     continue;
@@ -140,7 +140,7 @@ public class OrderServiceBenchmarkTest {
             for (int car = 1; car <= cars; car++) {
                 reservedSeats = reservationsSeats[car - 1];
                 if (reservedSeats > 0) {
-                    int res = reservationService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats, orderService);
+                    int res = reservationService.confirmReservation(resId, orderId, trainId, Timestamp.valueOf(departureTime), userId, car, reservedSeats);
                     if (res == 0) {
                         System.out.println("Reservation failed. Please try again.");
                     }

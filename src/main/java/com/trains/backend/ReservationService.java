@@ -21,6 +21,8 @@ public class ReservationService {
     private static PreparedStatement DELETE_ALL_FROM_RESERVATIONS;
     private static PreparedStatement SELECT_SUM_RESERVED_SEATS_BY_CAR;
     private static PreparedStatement SELECT_RESERVATIONS_BY_CAR;
+    private static PreparedStatement SELECT_SUM_SEATS_AMOUNT_BY_CAR;
+    private static PreparedStatement SELECT_RESERVATION;
 
     public ReservationService(Session session) {
         this.session = session;
@@ -42,6 +44,12 @@ public class ReservationService {
         }
         if (SELECT_RESERVATIONS_BY_CAR == null) {
             SELECT_RESERVATIONS_BY_CAR = session.prepare("SELECT res_id, seats_amount FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ?").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+        }
+        if (SELECT_SUM_SEATS_AMOUNT_BY_CAR == null) {
+            SELECT_SUM_SEATS_AMOUNT_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+        }
+        if (SELECT_RESERVATION == null) {
+            SELECT_RESERVATION = session.prepare("SELECT * FROM reservations WHERE train_id = ? AND trip_date = ? AND car = ? AND res_id = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
         }
     }
 

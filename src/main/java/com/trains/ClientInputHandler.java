@@ -41,7 +41,12 @@ public class ClientInputHandler {
 		int choice = 0;
 		while (choice != 1) {
 			System.out.print("Choose: ");
-			choice = Integer.parseInt(scanner.nextLine());
+			try {
+				choice = Integer.parseInt(scanner.nextLine());
+			} catch (NumberFormatException e) {
+				choice = 0;
+				System.out.println("Invalid input. Defaulting to 0.");
+			}
 			try {
 				switch (choice) {
 					case 0: {
@@ -69,7 +74,10 @@ public class ClientInputHandler {
 						login(scanner);
 						break;
 					}
-					default: System.out.println("Wrong action");
+					default: {
+						printActions();
+						break;
+					}
 				}
 			} catch (BackendException e) {
 				System.out.println("An error occurred: " + e.getMessage());

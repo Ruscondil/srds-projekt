@@ -67,9 +67,15 @@ public class OrderServiceTestQUORUM {
 
         // Add the select statement here
         String query = "SELECT train_id, trip_date, car, SUM(seats_amount) FROM orders GROUP BY train_id, trip_date, car";
+        final int[] previousTrainId = {-1};
         session.getSession().execute(query).forEach(row -> {
+            int currentTrainId = row.getInt("train_id");
+            if (currentTrainId != previousTrainId[0] && previousTrainId[0] != -1) {
+                System.out.println();
+            }
             System.out.println(String.format("Train ID: %d, Trip Date: %s, Car: %d, Seats Amount: %d",
-                    row.getInt("train_id"), row.getTimestamp("trip_date"), row.getInt("car"), row.getInt("system.sum(seats_amount)")));
+                    currentTrainId, row.getTimestamp("trip_date"), row.getInt("car"), row.getInt("system.sum(seats_amount)")));
+            previousTrainId[0] = currentTrainId;
         });
     }
 

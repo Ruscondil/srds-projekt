@@ -66,8 +66,6 @@ public class ReservationService {
         Row row = rs.one();
         int numOfResSeats = row != null ? row.getInt(0) : 0;
         int numOfSeats = orderService.getTakenSeatsByCar(trainId, tripDate.toString(), car);
-        logger.warn("fkdlv " + numOfSeats);
-        System.out.printf("%d  %d\n",numOfSeats + seatsAmount + numOfResSeats, CarCapacity);
         if (numOfSeats + seatsAmount + numOfResSeats > CarCapacity) {
             logger.warn("Not enough seats available for reservation " + resId);
             return 0;
@@ -75,7 +73,7 @@ public class ReservationService {
         bs = new BoundStatement(INSERT_INTO_RESERVATIONS);
         bs.bind(resId, trainId, tripDate, userId, car, seatsAmount);
         session.execute(bs);
-        logger.info("Reservation " + resId + " created");
+        //logger.info("Reservation " + resId + " created");
         return 1;
     }
 
@@ -92,7 +90,7 @@ public class ReservationService {
         bs = new BoundStatement(DELETE_FROM_RESERVATIONS);
         bs.bind(trainId, tripDate, car, resId);
         session.execute(bs);
-        logger.info("Reservation " + resId + " deleted");
+        //logger.info("Reservation " + resId + " deleted");
         return 1;
     }
 
@@ -118,61 +116,11 @@ public class ReservationService {
         logger.info("All reservations deleted");
     }
 
-    public void resolveConflictsForAllCars(int trainId, Timestamp tripDate, OrderService orderService) {
-        String selectedTrain = orderService.getTrainService().selectTrain(trainId, tripDate);
-        if (selectedTrain == null) {
-            System.out.println("Train not found");
-            return;
-        }
-
-        int cars = Integer.parseInt(selectedTrain.split(",")[2].split(": ")[1]);
-        for (int car = 1; car <= cars; car++) {
-            resolveConflicts(trainId, tripDate, car, orderService);
-        }
-    }
-
-    public void resolveConflicts(int trainId, Timestamp tripDate, int car, OrderService orderService) {
-        int reservedSeats = orderService.getTakenSeatsByCar(trainId, tripDate.toString(), car);
-        int reservedSeatsInReservations = getSumReservedSeatsByCar(trainId, tripDate.toString(), car);
-        int totalReservedSeats = reservedSeats + reservedSeatsInReservations;
-
-        String selectedTrain = orderService.getTrainService().selectTrain(trainId, tripDate);
-        if (selectedTrain == null) {
-            System.out.println("Train not found");
-            return;
-        }
-
-        int seatsPerCar = Integer.parseInt(selectedTrain.split(",")[3].split(": ")[1]);
-        if (totalReservedSeats > seatsPerCar) {
-            int excessSeats = totalReservedSeats - seatsPerCar;
-            cancelExcessReservations(trainId, tripDate, car, excessSeats);
-        }
-    }
-
-    private void cancelExcessReservations(int trainId, Timestamp tripDate, int car, int excessSeats) {
-        BoundStatement bs = new BoundStatement(SELECT_RESERVATIONS_BY_CAR);
-        bs.bind(trainId, tripDate, car);
-        ResultSet rs = session.execute(bs);
-
-        for (Row row : rs) {
-            UUID resId = row.getUUID("res_id");
-            int seatsAmount = row.getInt("seats_amount");
-
-            if (seatsAmount <= excessSeats) {
-                deleteReservation(trainId, tripDate, car, resId);
-                excessSeats -= seatsAmount;
-            } else {
-                updateReservation(trainId, tripDate, car, resId, seatsAmount - excessSeats);
-                break;
-            }
-        }
-    }
-
     public void deleteReservation(int trainId, Timestamp tripDate, int car, UUID resId) {
         BoundStatement bs = new BoundStatement(DELETE_FROM_RESERVATIONS);
         bs.bind(trainId, tripDate, car, resId);
         session.execute(bs);
-        logger.info("Reservation " + resId + " deleted due to conflict resolution");
+        //logger.info("Reservation " + resId + " deleted due to conflict resolution");
     }
 
     private void updateReservation(int trainId, Timestamp tripDate, int car, UUID resId, int newSeatsAmount) {
@@ -180,6 +128,6 @@ public class ReservationService {
         BoundStatement bs = new BoundStatement(session.prepare(query));
         bs.bind(newSeatsAmount, trainId, tripDate, car, resId);
         session.execute(bs);
-        logger.info("Reservation " + resId + " updated to " + newSeatsAmount + " seats due to conflict resolution");
+        //logger.info("Reservation " + resId + " updated to " + newSeatsAmount);
     }
 }

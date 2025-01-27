@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-public class OrderServiceBenchmarkTest {
+public class OrderServiceTestQUORUM {
 
     private static BackendSession session;
     private static OrderService orderService;
@@ -65,11 +65,7 @@ public class OrderServiceBenchmarkTest {
 
         System.out.println("Benchmark completed in: " + duration + " ms");
 
-        // Resolve conflicts after the benchmark
-        resolveConflictsForAllCars();
 
-        // Verify data consistency
-        //verifyDataConsistency();
     }
 
     private void addTicket(String train, UUID userId, int numberOfTickets) throws BackendException {
@@ -154,31 +150,7 @@ public class OrderServiceBenchmarkTest {
         return remainingTickets > 0 ? null : ticketInfo.toString();
     }
 
-    private void resolveConflictsForAllCars() {
-        for (String train : trains) {
-            String[] trainDetails = train.split(", ");
-            int trainId = Integer.parseInt(trainDetails[0].split(": ")[1]);
-            String departureTime = trainDetails[1].split(": ")[1];
-            Timestamp tripDate = Timestamp.valueOf(departureTime);
-            int cars = Integer.parseInt(trainDetails[2].split(": ")[1]);
 
-            for (int car = 1; car <= cars; car++) {
-                reservationService.resolveConflicts(trainId, tripDate, car, orderService);
-            }
-        }
-    }
 
-    private void verifyDataConsistency() {
-        // Query the database to check for data consistency
-        String allOrders = orderService.selectAllOrders();
-        String allUserOrders = orderService.getUserOrderService().selectAllUsersOrders();
-
-        // Print the results for manual verification
-        System.out.println("All Orders: \n" + allOrders);
-        System.out.println("All User Orders: \n" + allUserOrders);
-
-        // Add additional checks if needed to programmatically verify consistency
-        // For example, you can parse the results and compare counts or specific values
-    }
 
 }

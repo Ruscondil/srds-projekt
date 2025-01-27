@@ -65,7 +65,12 @@ public class OrderServiceTestQUORUM {
 
         System.out.println("Benchmark completed in: " + duration + " ms");
 
-
+        // Add the select statement here
+        String query = "SELECT train_id, trip_date, car, SUM(seats_amount) FROM orders GROUP BY train_id, trip_date, car";
+        session.getSession().execute(query).forEach(row -> {
+            System.out.println(String.format("Train ID: %d, Trip Date: %s, Car: %d, Seats Amount: %d",
+                    row.getInt("train_id"), row.getTimestamp("trip_date"), row.getInt("car"), row.getInt("system.sum(seats_amount)")));
+        });
     }
 
     private void addTicket(String train, UUID userId, int numberOfTickets) throws BackendException {

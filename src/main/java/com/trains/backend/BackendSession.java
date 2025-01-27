@@ -78,6 +78,10 @@ public class BackendSession {
         return reservationService;
     }
 
+    public Session getSession() {
+        return session;
+    }
+
     public void printAllTables() throws BackendException {
         String output = userService.selectAllUsers();
         System.out.println("Users: \n" + output);

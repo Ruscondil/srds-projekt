@@ -60,5 +60,12 @@ public class OrderServiceConsistencyTest {
         // Check consistency
         int totalReservedSeats = orderService.getTakenSeats(1001, "2024-12-28 11:00:00");
         assertEquals(numberOfThreads, totalReservedSeats, "Total reserved seats should match the number of threads");
+
+        // Add the select statement here
+        String query = "SELECT train_id, trip_date, car, SUM(seats_amount) FROM orders GROUP BY train_id, trip_date, car";
+        session.getSession().execute(query).forEach(row -> {
+            System.out.println(String.format("Train ID: %d, Trip Date: %s, Car: %d, Seats Amount: %d",
+                    row.getInt("train_id"), row.getTimestamp("trip_date"), row.getInt("car"), row.getInt("system.sum(seats_amount)")));
+        });
     }
 }

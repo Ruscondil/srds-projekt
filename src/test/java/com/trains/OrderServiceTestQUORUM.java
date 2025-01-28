@@ -25,7 +25,7 @@ public class OrderServiceTestQUORUM {
 
     @BeforeAll
     public static void setup() throws Exception {
-        session = new BackendSession("127.0.0.1:9042,127.0.0.1:9043,127.0.0.1:9044", "Test", "QUORUM");
+        session = new BackendSession("127.0.0.1:9042", "Pociagi", "QUORUM");
         orderService = session.getOrderService();
         userService = session.getUserService();
         trainService = session.getTrainService();
@@ -35,9 +35,9 @@ public class OrderServiceTestQUORUM {
         UUID userId = UUID.randomUUID();
         userService.upsertUser(userId, "Test User");
         users.add(userId);
-        trains.add(trainService.upsertTrain(4091, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50));
-        trains.add(trainService.upsertTrain(4092, Timestamp.valueOf("2024-12-28 12:00:00"), 4, 60));
-        trains.add(trainService.upsertTrain(4093, Timestamp.valueOf("2024-12-28 13:00:00"), 6, 40));
+        for (int i=0;i<1000;i++){
+            trains.add(trainService.upsertTrain(i, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50));
+        }
     }
 
     @Test
@@ -50,12 +50,6 @@ public class OrderServiceTestQUORUM {
         for (int i = 0; i < numberOfThreads; i++) {
             executorService.submit(() -> {
                 assertDoesNotThrow(() -> {
-                    int delay = ThreadLocalRandom.current().nextInt(1, 11) * 1000;
-                    try {
-                        Thread.sleep(delay);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                     String train = trains.get(new Random().nextInt(trains.size()));
                     addTicket(train, users.get(0), 1);
                 });

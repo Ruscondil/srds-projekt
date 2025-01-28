@@ -21,8 +21,8 @@ public class WriteConsistencyTestQUORUM {
 
     @BeforeAll
     public static void setup() throws Exception {
-        sessionOne = new BackendSession("127.0.0.1:9044", "Test", "QUORUM");
-        sessionTwo = new BackendSession("127.0.0.1:9043", "Test", "QUORUM");
+        sessionOne = new BackendSession("127.0.0.1:9042", "Pociagi", "QUORUM");
+        sessionTwo = new BackendSession("127.0.0.1:9042", "Pociagi", "QUORUM");
 
         orderServiceOne = sessionOne.getOrderService();
         userServiceOne = sessionOne.getUserService();

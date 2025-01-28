@@ -1,7 +1,7 @@
-CREATE KEYSPACE IF NOT EXISTS Test
-  WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
+CREATE KEYSPACE IF NOT EXISTS Pociagi
+  WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 4 };
 
-USE Test;
+USE Pociagi;
 CONSISTENCY QUORUM;
 
 CREATE TABLE IF NOT EXISTS orders (

@@ -27,7 +27,7 @@ public class OrderServiceTestManyUsers {
 
     @BeforeAll
     public static void setup() throws Exception {
-        session = new BackendSession("127.0.0.1:9042,127.0.0.1:9043,127.0.0.1:9044", "Test", "QUORUM");
+        session = new BackendSession("127.0.0.1:9042", "Pociagi", "QUORUM");
         orderService = session.getOrderService();
         userService = session.getUserService();
         trainService = session.getTrainService();

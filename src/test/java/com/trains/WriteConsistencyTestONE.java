@@ -25,8 +25,8 @@ public class WriteConsistencyTestONE {
 
     @BeforeAll
     public static void setup() throws Exception {
-        sessionOne = new BackendSession("127.0.0.1:9044", "Test", "ONE");
-        sessionTwo = new BackendSession("127.0.0.1:9043", "Test", "ONE");
+        sessionOne = new BackendSession("127.0.0.1:9042", "Pociagi", "ONE");
+        sessionTwo = new BackendSession("127.0.0.1:9042", "Pociagi", "ONE");
 
         orderServiceOne = sessionOne.getOrderService();
         userServiceOne = sessionOne.getUserService();

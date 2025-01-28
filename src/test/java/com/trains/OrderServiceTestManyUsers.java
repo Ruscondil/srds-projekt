@@ -43,11 +43,13 @@ public class OrderServiceTestManyUsers {
             userService.upsertUser(user2, "Jane Doe");
             userService.upsertUser(user3, "Alice Cooper");
             userService.upsertUser(user4, "Bob Marley");
-            users.add(user1);
-            users.add(user2);
-            users.add(user3);
-            users.add(user4);
         }
+
+        users.add(user1);
+        users.add(user2);
+        users.add(user3);
+        users.add(user4);
+        
         trains.add(trainService.upsertTrain(4091, Timestamp.valueOf("2024-12-28 11:00:00"), 5, 50));
         trains.add(trainService.upsertTrain(4092, Timestamp.valueOf("2024-12-28 12:00:00"), 4, 60));
         trains.add(trainService.upsertTrain(4093, Timestamp.valueOf("2024-12-28 13:00:00"), 6, 40));

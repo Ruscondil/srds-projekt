@@ -187,11 +187,25 @@ public class ClientInputHandler {
 	}
 
 	private void scanTicket(Scanner scanner) throws BackendException {
-		if (currentClient == null) {
-			throw new BackendException("Najpierw trzeba się zalogować.");
+		List<Client> users = userService.getAllUsers();
+		if (users.isEmpty()) {
+			System.out.println("No users available.");
+			return;
 		}
 
-		UUID userId = currentClient.getUserId();
+		System.out.println("Available users:");
+		for (int i = 0; i < users.size(); i++) {
+			System.out.println((i + 1) + " - " + users.get(i).getName());
+		}
+
+		System.out.print("Choose user: ");
+		int userChoice = Integer.parseInt(scanner.nextLine());
+		if (userChoice < 1 || userChoice > users.size()) {
+			System.out.println("Invalid choice.");
+			return;
+		}
+
+		UUID userId = users.get(userChoice - 1).getUserId();
 
 		List<String> availableTrains = trainService.getAvailableTrains(10);
 

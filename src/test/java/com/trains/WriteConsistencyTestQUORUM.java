@@ -11,42 +11,41 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class WriteConsistencyTestQUORUM {
 
-    private static BackendSession sessionQuorum;
-    private static OrderService orderServiceQuorum;
-    private static UserService userServiceQuorum;
-    private static TrainService trainServiceQuorum;
+    private static BackendSession sessionOne;
+
+    private static BackendSession sessionTwo;
+    private static OrderService orderServiceOne;
+    private static OrderService orderServiceTwo;
+    private static UserService userServiceOne;
+    private static TrainService trainServiceOne;
 
     @BeforeAll
     public static void setup() throws Exception {
-        sessionQuorum = new BackendSession("127.0.0.1:9042,127.0.0.1:9043,127.0.0.1:9044", "Test", "QUORUM");
+        sessionOne = new BackendSession("127.0.0.1:9044", "Test", "QUORUM");
+        sessionTwo = new BackendSession("127.0.0.1:9043", "Test", "QUORUM");
 
-        orderServiceQuorum = sessionQuorum.getOrderService();
-        userServiceQuorum = sessionQuorum.getUserService();
-        trainServiceQuorum = sessionQuorum.getTrainService();
+        orderServiceOne = sessionOne.getOrderService();
+        userServiceOne = sessionOne.getUserService();
+        trainServiceOne = sessionOne.getTrainService();
+
+        orderServiceTwo = sessionTwo.getOrderService();
     }
 
     @Test
     public void testWriteConsistency() throws BackendException {
         UUID userId = UUID.randomUUID();
-        int trainId = 4091;
+        int trainId = 4092;
         Timestamp tripDate = Timestamp.valueOf("2024-12-28 11:00:00");
 
-        // Insert user with QUORUM consistency
-        userServiceQuorum.upsertUser(userId, "Test User QUORUM");
+        userServiceOne.upsertUser(userId, "Test User QUORUM");
         // Insert train with QUORUM consistency
-        trainServiceQuorum.upsertTrain(trainId, tripDate, 5, 50);
-        // Insert order with QUORUM consistency
-        UUID orderIdQuorum = UUID.randomUUID();
-        orderServiceQuorum.upsertOrder(orderIdQuorum, trainId, tripDate, userId, 1, 20);
+        trainServiceOne.upsertTrain(trainId, tripDate, 5, 50);
 
-        // Verify data with QUORUM consistency
-        Client userQuorum = userServiceQuorum.getUser(userId);
-        String trainQuorum = trainServiceQuorum.selectTrain(trainId, tripDate);
-        int seatsQuorum = orderServiceQuorum.getTakenSeats(trainId, tripDate.toString());
+        // Insert a test order
+        orderServiceOne.upsertOrder(UUID.randomUUID(), trainId, tripDate, userId, 1, 2);
 
-        // Assertions
-        assertEquals("Test User QUORUM", userQuorum.getName());
-        assertEquals("Train ID: 4091, Departure: 2024-12-28 11:00:00.0, Cars: 5, Seats Per Car: 50", trainQuorum);
-        assertEquals(20, seatsQuorum);
+        int seatsQuorum = orderServiceTwo.getTakenSeatsByCar(trainId, tripDate.toString(), 1);
+
+        assertEquals(2, seatsQuorum, "Inconsistent read detected");
     }
 }

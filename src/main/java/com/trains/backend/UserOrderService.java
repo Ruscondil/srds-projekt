@@ -29,18 +29,14 @@ public class UserOrderService {
     }
 
     private void prepareStatements() {
-        if (SELECT_ALL_FROM_USERS_ORDERS == null) {
-            SELECT_ALL_FROM_USERS_ORDERS = session.prepare("SELECT * FROM orders_per_user;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
-        if (INSERT_INTO_USERS_ORDERS == null) {
-            INSERT_INTO_USERS_ORDERS = session.prepare("INSERT INTO orders_per_user (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
-        if (DELETE_ALL_FROM_USERS_ORDERS == null) {
-            DELETE_ALL_FROM_USERS_ORDERS = session.prepare("TRUNCATE orders_per_user;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
-        if (SELECT_ORDERS == null) {
-            SELECT_ORDERS = session.prepare("SELECT * FROM orders_per_user WHERE train_id = ? AND trip_date = ? AND user_id = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
+        SELECT_ALL_FROM_USERS_ORDERS = session.prepare("SELECT * FROM orders_per_user;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
+        INSERT_INTO_USERS_ORDERS = session.prepare("INSERT INTO orders_per_user (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
+        DELETE_ALL_FROM_USERS_ORDERS = session.prepare("TRUNCATE orders_per_user;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
+        SELECT_ORDERS = session.prepare("SELECT * FROM orders_per_user WHERE train_id = ? AND trip_date = ? AND user_id = ?;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
     }
 
     public String selectAllUsersOrders() {

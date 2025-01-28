@@ -42,21 +42,16 @@ public class OrderService {
     }
 
     private void prepareStatements() {
-        if (SELECT_ALL_FROM_ORDERS == null) {
-            SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
-        if (INSERT_INTO_ORDERS == null) {
-            INSERT_INTO_ORDERS = session.prepare("INSERT INTO orders (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
-        if (DELETE_ALL_FROM_ORDERS == null) {
-            DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
-        if (SELECT_SUM_SEATS_AMOUNT == null) {
-            SELECT_SUM_SEATS_AMOUNT = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ?").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
-        if (SELECT_SUM_SEATS_AMOUNT_BY_CAR == null) {
-            SELECT_SUM_SEATS_AMOUNT_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
-        }
+        SELECT_ALL_FROM_ORDERS = session.prepare("SELECT * FROM orders;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
+        INSERT_INTO_ORDERS = session.prepare("INSERT INTO orders (order_id, train_id, trip_date, user_id, car, seats_amount) VALUES (?, ?, ?, ?, ?, ?);").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
+        DELETE_ALL_FROM_ORDERS = session.prepare("TRUNCATE orders;").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
+        SELECT_SUM_SEATS_AMOUNT = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ?").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
+        SELECT_SUM_SEATS_AMOUNT_BY_CAR = session.prepare("SELECT SUM(seats_amount) FROM orders WHERE train_id = ? AND trip_date = ? AND car = ?").setConsistencyLevel(ConsistencyLevel.valueOf(session.getCluster().getConfiguration().getQueryOptions().getConsistencyLevel().name()));
+
     }
 
     public String selectAllOrders() {

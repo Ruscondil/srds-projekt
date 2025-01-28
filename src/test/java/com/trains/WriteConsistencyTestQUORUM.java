@@ -44,8 +44,8 @@ public class WriteConsistencyTestQUORUM {
         // Insert a test order
         orderServiceOne.upsertOrder(UUID.randomUUID(), trainId, tripDate, userId, 1, 2);
 
-        int seatsQuorum = orderServiceTwo.getTakenSeatsByCar(trainId, tripDate.toString(), 1);
+        int seats = orderServiceTwo.getTakenSeatsByCar(trainId, tripDate.toString(), 1);
 
-        assertEquals(2, seatsQuorum, "Inconsistent read detected");
+        assertEquals(2, seats, "Inconsistency detected");
     }
 }

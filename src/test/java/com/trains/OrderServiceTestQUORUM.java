@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -49,6 +50,12 @@ public class OrderServiceTestQUORUM {
         for (int i = 0; i < numberOfThreads; i++) {
             executorService.submit(() -> {
                 assertDoesNotThrow(() -> {
+                    int delay = ThreadLocalRandom.current().nextInt(1, 11) * 1000;
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     String train = trains.get(new Random().nextInt(trains.size()));
                     addTicket(train, users.get(0), 1);
                 });

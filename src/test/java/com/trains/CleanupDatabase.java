@@ -4,7 +4,7 @@ import com.trains.backend.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class CleanupDatabaseTest {
+public class CleanupDatabase {
 
     private static BackendSession session;
     private static OrderService orderService;

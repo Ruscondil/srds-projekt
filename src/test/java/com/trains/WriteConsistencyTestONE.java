@@ -16,9 +16,7 @@ import java.util.concurrent.Future;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class WriteConsistencyTestONE {
-
     private static BackendSession sessionOne;
-
     private static BackendSession sessionTwo;
     private static OrderService orderServiceOne;
     private static OrderService orderServiceTwo;
@@ -50,9 +48,9 @@ public class WriteConsistencyTestONE {
         // Insert a test order
         orderServiceOne.upsertOrder(UUID.randomUUID(), trainId, tripDate, userId, 1, 2);
 
-        int seatsQuorum = orderServiceTwo.getTakenSeatsByCar(trainId, tripDate.toString(), 1);
+        int seats = orderServiceTwo.getTakenSeatsByCar(trainId, tripDate.toString(), 1);
 
-        assertEquals(2, seatsQuorum, "Inconsistent read detected");
+        assertEquals(2, seats, "Inconsistency detected");
 
     }
 }
